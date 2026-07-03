@@ -1,17 +1,22 @@
-# Commissions
+# Commissions v2
 
-Site perso pour suivre tes commandes de commissions Roblox. Noir et blanc, minimaliste.
-Un seul fichier `index.html`, rien a installer, rien a configurer.
+Un seul fichier `index.html`. Nouveautes par rapport a la v1 :
 
-Tes commandes sont enregistrees directement dans ton navigateur (localStorage) : elles restent
-si tu fermes l'onglet ou eteins ton ordi, tant que tu utilises le meme navigateur sur le meme
-appareil et que tu ne vides pas les donnees du site.
+- Recherche par client, filtre par type, tri (deadline / recent / nom)
+- Champ acompte verse en plus du prix total
+- Alerte visuelle : carte orange si deadline dans 3 jours ou moins, rouge si depassee
+- Champ lien (Discord/Trello) cliquable sur chaque carte
+- Onglet Archive : les commandes livrees peuvent etre archivees pour degager le board, avec possibilite de restaurer
+- Stats : encaisse total ET encaisse ce mois-ci
+- Export CSV de toutes tes commandes (bouton en haut)
+- Clique sur une carte pour la modifier (avant tu pouvais juste la deplacer ou supprimer)
+- Notes internes privees sur chaque commande
+- Mode sombre (bouton en haut a droite, en forme de demi-lune)
 
 ## Mise en ligne (GitHub Pages)
 
-1. Cree un repo GitHub, mets-y ce fichier `index.html`
-2. Va dans Settings > Pages > Source > choisis la branche `main` et le dossier `/ (root)` > Save
-3. Attends une minute, ton site est en ligne a l'adresse indiquee en haut de cette page Pages
+Remplace simplement ton ancien `index.html` par celui-ci dans ton repo GitHub (Add file > Upload files, ou glisser-deposer si tu es deja sur la page du fichier > icone crayon > coller le contenu). GitHub Pages se met a jour automatiquement, rien d'autre a faire.
 
-C'est tout. Chaque fois que tu modifies `index.html` et que tu push sur GitHub, le site se
-met a jour tout seul, sans rien reconfigurer.
+## A savoir
+
+Tes anciennes commandes (v1) restent dans ton navigateur normalement, la structure des donnees est compatible.
