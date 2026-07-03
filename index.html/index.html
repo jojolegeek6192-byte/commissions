@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Commissions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --black: #0a0a0a;
+  --white: #ffffff;
+  --gray-50: #fafafa;
+  --gray-100: #f0f0f0;
+  --gray-300: #c7c7c7;
+  --gray-500: #8a8a8a;
+  --gray-700: #444444;
+  --border: #e2e2e2;
+  --radius: 10px;
+  --font-head: 'Space Grotesk', sans-serif;
+  --font-body: 'Inter', sans-serif;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  background: var(--white);
+  color: var(--black);
+  -webkit-font-smoothing: antialiased;
+}
+.hidden { display: none !important; }
+.btn {
+  font-family: var(--font-body);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 10px 16px;
+  border-radius: 7px;
+  border: 1px solid transparent;
+  cursor: pointer;
+}
+.btn-primary { background: var(--black); color: var(--white); }
+.btn-primary:hover { opacity: 0.85; }
+.btn-ghost { background: transparent; color: var(--gray-700); border-color: var(--border); }
+.btn-ghost:hover { background: var(--gray-50); }
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 40px;
+  border-bottom: 1px solid var(--border);
+}
+.logo { font-family: var(--font-head); font-weight: 600; font-size: 18px; letter-spacing: -0.02em; }
+.main { max-width: 1180px; margin: 0 auto; padding: 32px 40px 60px; }
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 32px; }
+.stat-card { border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 20px; }
+.stat-label { display: block; font-size: 12px; color: var(--gray-500); margin-bottom: 8px; }
+.stat-value { display: block; font-family: var(--font-head); font-size: 24px; font-weight: 600; letter-spacing: -0.01em; }
+.board { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+.column-header { display: flex; align-items: center; justify-content: space-between; padding: 0 2px; margin-bottom: 12px; }
+.column-title { font-size: 13px; font-weight: 600; color: var(--gray-700); text-transform: uppercase; letter-spacing: 0.03em; }
+.column-count { font-size: 12px; color: var(--gray-500); background: var(--gray-100); border-radius: 20px; padding: 1px 8px; }
+.column-list { display: flex; flex-direction: column; gap: 10px; min-height: 40px; }
+.card { border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; background: var(--white); }
+.card:hover { border-color: var(--gray-300); }
+.card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 6px; margin-bottom: 8px; }
+.card-client { font-weight: 600; font-size: 14px; }
+.card-del { background: none; border: none; color: var(--gray-300); cursor: pointer; font-size: 16px; line-height: 1; padding: 0; }
+.card-del:hover { color: var(--black); }
+.card-tag { display: inline-block; font-size: 11px; font-weight: 500; padding: 3px 9px; border-radius: 20px; background: var(--black); color: var(--white); margin-bottom: 8px; }
+.card-desc { font-size: 13px; color: var(--gray-700); line-height: 1.55; margin: 0 0 12px; }
+.card-meta { display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: var(--gray-500); margin-bottom: 10px; }
+.card-price { font-weight: 600; color: var(--black); }
+.card-actions { display: flex; gap: 6px; border-top: 1px solid var(--border); padding-top: 10px; }
+.move-btn { flex: 1; background: none; border: 1px solid var(--border); border-radius: 6px; padding: 6px; cursor: pointer; font-size: 13px; color: var(--gray-700); }
+.move-btn:hover { background: var(--gray-50); border-color: var(--gray-300); }
+.empty-col { border: 1px dashed var(--border); border-radius: var(--radius); padding: 20px; text-align: center; font-size: 12px; color: var(--gray-300); }
+.modal-overlay { position: fixed; inset: 0; background: rgba(10,10,10,0.5); display: flex; align-items: center; justify-content: center; z-index: 50; }
+.modal { width: 460px; max-width: calc(100vw - 32px); background: var(--white); border-radius: 14px; overflow: hidden; }
+.modal-header { display: flex; justify-content: space-between; align-items: center; padding: 18px 22px; border-bottom: 1px solid var(--border); }
+.modal-header h2 { font-family: var(--font-head); font-size: 17px; font-weight: 600; margin: 0; }
+.modal-body { padding: 20px 22px; }
+.field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.field { margin-bottom: 14px; }
+.field label { display: block; font-size: 12px; font-weight: 500; color: var(--gray-700); margin-bottom: 6px; }
+.field input, .field select, .field textarea {
+  width: 100%; padding: 10px 12px; border-radius: 7px; border: 1px solid var(--border);
+  font-size: 14px; font-family: var(--font-body); background: var(--white); color: var(--black);
+}
+.field input:focus, .field select:focus, .field textarea:focus { outline: none; border-color: var(--black); }
+.field textarea { min-height: 70px; resize: vertical; }
+.modal-footer { display: flex; justify-content: flex-end; gap: 10px; padding: 16px 22px; border-top: 1px solid var(--border); }
+.icon-btn { background: none; border: none; font-size: 22px; line-height: 1; cursor: pointer; color: var(--gray-500); padding: 4px 8px; }
+.icon-btn:hover { color: var(--black); }
+@media (max-width: 900px) {
+  .stats { grid-template-columns: repeat(2, 1fr); }
+  .board { grid-template-columns: 1fr 1fr; }
+  .topbar, .main { padding-left: 20px; padding-right: 20px; }
+}
+@media (max-width: 560px) {
+  .board { grid-template-columns: 1fr; }
+  .field-row { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+  <header class="topbar">
+    <span class="logo">Commissions</span>
+    <button id="new-order-btn" class="btn btn-primary">Nouvelle commande</button>
+  </header>
+
+  <main class="main">
+    <section class="stats">
+      <div class="stat-card">
+        <span class="stat-label">Commandes actives</span>
+        <span class="stat-value" id="stat-active">0</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">A encaisser</span>
+        <span class="stat-value" id="stat-pending">0</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Encaisse</span>
+        <span class="stat-value" id="stat-paid">0</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-label">Total commandes</span>
+        <span class="stat-value" id="stat-total">0</span>
+      </div>
+    </section>
+
+    <section class="board" id="board"></section>
+  </main>
+
+  <div id="modal-overlay" class="modal-overlay hidden">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>Nouvelle commande</h2>
+        <button id="modal-close" class="icon-btn" aria-label="Fermer">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="field-row">
+          <div class="field">
+            <label for="f-client">Client</label>
+            <input type="text" id="f-client" placeholder="Pseudo Discord ou Roblox" />
+          </div>
+          <div class="field">
+            <label for="f-type">Type</label>
+            <select id="f-type">
+              <option value="Build">Build / map</option>
+              <option value="Script">Script</option>
+              <option value="UI">UI / GFX</option>
+              <option value="Systeme">Systeme complet</option>
+              <option value="Autre">Autre</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label for="f-desc">Description</label>
+          <textarea id="f-desc" placeholder="Details de la demande du client"></textarea>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="f-price">Prix</label>
+            <input type="text" id="f-price" placeholder="ex: 500 R$ ou 20e" />
+          </div>
+          <div class="field">
+            <label for="f-deadline">Deadline</label>
+            <input type="date" id="f-deadline" />
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button id="cancel-btn" class="btn btn-ghost">Annuler</button>
+        <button id="save-btn" class="btn btn-primary">Ajouter</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+const STATUSES = [
+  { key: 'attente', label: 'En attente' },
+  { key: 'cours', label: 'En cours' },
+  { key: 'review', label: 'En review' },
+  { key: 'livre', label: 'Livre / paye' }
+];
+const STORAGE_KEY = 'commissions_data';
+
+let orders = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+
+function save() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(orders));
+}
+
+function extractNumber(str) {
+  if (!str) return 0;
+  const match = String(str).match(/[\d.]+/);
+  return match ? parseFloat(match[0]) : 0;
+}
+
+function formatDate(d) {
+  const [y, m, day] = d.split('-');
+  return `${day}/${m}/${y}`;
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str == null ? '' : str;
+  return div.innerHTML;
+}
+
+function render() {
+  const board = document.getElementById('board');
+  board.innerHTML = '';
+  let active = 0, pendingValue = 0, paidValue = 0;
+
+  STATUSES.forEach((st) => {
+    const items = orders.filter(o => o.status === st.key);
+    if (st.key !== 'livre') active += items.length;
+
+    const col = document.createElement('div');
+    col.className = 'column';
+
+    const header = document.createElement('div');
+    header.className = 'column-header';
+    header.innerHTML = `<span class="column-title">${st.label}</span><span class="column-count">${items.length}</span>`;
+    col.appendChild(header);
+
+    const list = document.createElement('div');
+    list.className = 'column-list';
+
+    if (items.length === 0) {
+      const empty = document.createElement('div');
+      empty.className = 'empty-col';
+      empty.textContent = 'Vide';
+      list.appendChild(empty);
+    }
+
+    items.forEach((o) => {
+      const num = extractNumber(o.price);
+      if (st.key === 'livre') paidValue += num; else pendingValue += num;
+
+      const idx = STATUSES.findIndex(s => s.key === st.key);
+      const canLeft = idx > 0;
+      const canRight = idx < STATUSES.length - 1;
+
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.innerHTML = `
+        <div class="card-top">
+          <span class="card-client">${escapeHtml(o.client)}</span>
+          <button class="card-del" data-del="${o.id}" aria-label="Supprimer">&times;</button>
+        </div>
+        <span class="card-tag">${escapeHtml(o.type)}</span>
+        <p class="card-desc">${escapeHtml(o.description)}</p>
+        <div class="card-meta">
+          <span>${o.deadline ? formatDate(o.deadline) : ''}</span>
+          <span class="card-price">${escapeHtml(o.price || '-')}</span>
+        </div>
+        <div class="card-actions">
+          ${canLeft ? `<button class="move-btn" data-move="${o.id}" data-dir="-1">&larr;</button>` : ''}
+          ${canRight ? `<button class="move-btn" data-move="${o.id}" data-dir="1">&rarr;</button>` : ''}
+        </div>
+      `;
+      list.appendChild(card);
+    });
+
+    col.appendChild(list);
+    board.appendChild(col);
+  });
+
+  document.getElementById('stat-active').textContent = active;
+  document.getElementById('stat-pending').textContent = pendingValue.toLocaleString('fr-FR');
+  document.getElementById('stat-paid').textContent = paidValue.toLocaleString('fr-FR');
+  document.getElementById('stat-total').textContent = orders.length;
+
+  document.querySelectorAll('[data-del]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      orders = orders.filter(o => o.id !== btn.dataset.del);
+      save();
+      render();
+    });
+  });
+
+  document.querySelectorAll('[data-move]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const order = orders.find(o => o.id === btn.dataset.move);
+      const dir = parseInt(btn.dataset.dir, 10);
+      const idx = STATUSES.findIndex(s => s.key === order.status);
+      const next = STATUSES[idx + dir];
+      if (!next) return;
+      order.status = next.key;
+      save();
+      render();
+    });
+  });
+}
+
+const modalOverlay = document.getElementById('modal-overlay');
+document.getElementById('new-order-btn').addEventListener('click', () => modalOverlay.classList.remove('hidden'));
+document.getElementById('modal-close').addEventListener('click', closeModal);
+document.getElementById('cancel-btn').addEventListener('click', closeModal);
+
+function closeModal() {
+  modalOverlay.classList.add('hidden');
+  document.getElementById('f-client').value = '';
+  document.getElementById('f-desc').value = '';
+  document.getElementById('f-price').value = '';
+  document.getElementById('f-deadline').value = '';
+}
+
+document.getElementById('save-btn').addEventListener('click', () => {
+  const client = document.getElementById('f-client').value.trim();
+  const type = document.getElementById('f-type').value;
+  const description = document.getElementById('f-desc').value.trim();
+  const price = document.getElementById('f-price').value.trim();
+  const deadline = document.getElementById('f-deadline').value;
+  if (!client || !description) return;
+
+  orders.push({
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
+    client, type, description, price, deadline,
+    status: 'attente'
+  });
+  save();
+  closeModal();
+  render();
+});
+
+render();
+</script>
+</body>
+</html>
