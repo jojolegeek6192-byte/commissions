@@ -27,5 +27,10 @@ met a jour tout seul, sans rien reconfigurer.
 - Historique clients : total de commandes et revenu encaisse par client
 - Objectif de revenu mensuel avec barre de progression
 - Mode sombre (bouton en haut a droite, la preference est memorisee)
+- Petite animation de confettis quand une commande passe en "Livre / paye"
+- Badge "livrees ce mois" a cote du logo
+- Section "A surveiller cette semaine" avec les deadlines proches
+- Titre d'onglet et icone qui indiquent le nombre de commandes en retard
+- Bouton "Copier le recap" dans une commande pour coller un resume au client
 - Clique sur une commande pour la modifier ou la supprimer
 - Export CSV de toutes les commandes

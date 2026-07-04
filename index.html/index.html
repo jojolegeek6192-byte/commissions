@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<link rel="icon" id="favicon" href="" />
 <title>Commissions</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -77,8 +78,27 @@ body {
   padding: 20px 40px; border-bottom: 1px solid var(--border); gap: 12px; flex-wrap: wrap;
 }
 .logo { font-family: var(--font-head); font-weight: 600; font-size: 18px; letter-spacing: -0.02em; }
+.streak-badge { font-size: 12px; color: var(--text-muted); margin-left: 10px; }
 .topbar-right { display: flex; gap: 10px; align-items: center; }
 .main { max-width: 1180px; margin: 0 auto; padding: 32px 40px 60px; }
+
+.today-section { margin-bottom: 24px; }
+.today-title { font-size: 12px; color: var(--text-muted); margin: 0 0 10px; }
+.today-list { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 4px; }
+.today-chip {
+  flex: 0 0 auto; min-width: 200px; border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 10px 14px; background: var(--surface); cursor: pointer;
+}
+.today-chip.overdue { border-color: var(--danger); }
+.today-chip.soon { border-color: var(--warning); }
+.today-chip-top { display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+.today-chip-date { font-size: 11px; color: var(--text-muted); }
+.today-chip.overdue .today-chip-date { color: var(--danger); }
+.today-chip.soon .today-chip-date { color: var(--warning); }
+
+#confetti-canvas { position: fixed; inset: 0; pointer-events: none; z-index: 999; }
+
+.copy-feedback { font-size: 12px; color: var(--text-muted); margin-right: auto; padding-left: 4px; }
 
 .stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 14px; }
 .stat-card { border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 20px; background: var(--surface); }
@@ -198,7 +218,10 @@ body {
 <body>
 
   <header class="topbar">
-    <span class="logo">Commissions</span>
+    <div style="display:flex; align-items:center;">
+      <span class="logo">Commissions</span>
+      <span class="streak-badge" id="streak-badge"></span>
+    </div>
     <div class="topbar-right">
       <button id="theme-toggle" class="btn btn-ghost">Mode sombre</button>
       <button id="clients-btn" class="btn btn-ghost">Clients</button>
@@ -233,6 +256,11 @@ body {
       <span class="goal-value" id="goal-value">0 / 0 R$</span>
       <button class="goal-edit" id="goal-edit-btn">Modifier</button>
     </div>
+
+    <section class="today-section hidden" id="today-section">
+      <p class="today-title">A surveiller cette semaine</p>
+      <div class="today-list" id="today-list"></div>
+    </section>
 
     <section class="charts">
       <div class="chart-card">
@@ -313,8 +341,10 @@ body {
         </div>
       </div>
       <div class="modal-footer">
-        <div>
+        <div style="display:flex; gap:10px; align-items:center;">
           <button id="delete-btn" class="btn btn-ghost hidden">Supprimer</button>
+          <button id="copy-recap-btn" class="btn btn-ghost hidden">Copier le recap</button>
+          <span class="copy-feedback" id="copy-feedback"></span>
         </div>
         <div class="modal-footer-right">
           <button id="cancel-btn" class="btn btn-ghost">Annuler</button>
@@ -334,6 +364,8 @@ body {
     </div>
   </div>
 
+  <canvas id="confetti-canvas"></canvas>
+
 <script>
 const STATUSES = [
   { key: 'attente', label: 'En attente' },
@@ -349,6 +381,7 @@ const VIEW_KEY = 'commissions_view';
 let orders = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
 let editingId = null;
 let viewMode = localStorage.getItem(VIEW_KEY) || 'kanban';
+let justMarkedPaidId = null;
 
 function save() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(orders));
@@ -530,6 +563,9 @@ function renderBoard() {
   attachRowEvents();
   renderCharts();
   renderGoal();
+  renderStreak();
+  renderToday();
+  updateFaviconAndTitle();
 }
 
 function renderList() {
@@ -568,6 +604,9 @@ function renderList() {
   attachRowEvents();
   renderCharts();
   renderGoal();
+  renderStreak();
+  renderToday();
+  updateFaviconAndTitle();
 }
 
 function attachRowEvents() {
@@ -589,7 +628,10 @@ function attachRowEvents() {
       const next = STATUSES[idx + dir];
       if (!next) return;
       order.status = next.key;
-      if (next.key === 'livre' && !order.paidAt) order.paidAt = new Date().toISOString();
+      if (next.key === 'livre' && !order.paidAt) {
+        order.paidAt = new Date().toISOString();
+        fireConfetti();
+      }
       save();
       render();
     });
@@ -672,6 +714,147 @@ function renderCharts() {
       }
     });
   }
+}
+
+// ---------- Confettis ----------
+function fireConfetti() {
+  const canvas = document.getElementById('confetti-canvas');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  const ctx = canvas.getContext('2d');
+  const colors = ['#0a0a0a', '#444444', '#8a8a8a', '#c7c7c7'];
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  const paletteColors = isDark ? ['#f5f5f5', '#c7c7c7', '#8a8a8a', '#5a5a5a'] : colors;
+
+  const particles = [];
+  const count = 80;
+  for (let i = 0; i < count; i++) {
+    particles.push({
+      x: canvas.width / 2,
+      y: canvas.height / 3,
+      vx: (Math.random() - 0.5) * 12,
+      vy: Math.random() * -10 - 4,
+      size: Math.random() * 6 + 4,
+      color: paletteColors[Math.floor(Math.random() * paletteColors.length)],
+      rotation: Math.random() * Math.PI,
+      vrotation: (Math.random() - 0.5) * 0.3,
+      gravity: 0.35
+    });
+  }
+
+  let frame = 0;
+  const maxFrames = 90;
+
+  function tick() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    particles.forEach(p => {
+      p.vy += p.gravity;
+      p.x += p.vx;
+      p.y += p.vy;
+      p.rotation += p.vrotation;
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rotation);
+      ctx.fillStyle = p.color;
+      ctx.globalAlpha = Math.max(0, 1 - frame / maxFrames);
+      ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.6);
+      ctx.restore();
+    });
+    frame++;
+    if (frame < maxFrames) {
+      requestAnimationFrame(tick);
+    } else {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+  }
+  tick();
+}
+
+// ---------- Streak ----------
+function renderStreak() {
+  const now = new Date();
+  const thisMonthKey = `${now.getFullYear()}-${now.getMonth()}`;
+  const count = orders.filter(o => {
+    if (o.status !== 'livre' || !o.paidAt) return false;
+    const d = new Date(o.paidAt);
+    return `${d.getFullYear()}-${d.getMonth()}` === thisMonthKey;
+  }).length;
+  const badge = document.getElementById('streak-badge');
+  badge.textContent = count > 0 ? `\u{1F525} ${count} livree${count > 1 ? 's' : ''} ce mois` : '';
+}
+
+// ---------- Vue Aujourd'hui ----------
+function renderToday() {
+  const section = document.getElementById('today-section');
+  const list = document.getElementById('today-list');
+  const upcoming = orders
+    .filter(o => o.status !== 'livre' && o.deadline)
+    .map(o => ({ o, diff: daysUntil(o.deadline) }))
+    .filter(x => x.diff <= 7)
+    .sort((a, b) => a.diff - b.diff);
+
+  if (upcoming.length === 0) {
+    section.classList.add('hidden');
+    return;
+  }
+  section.classList.remove('hidden');
+  list.innerHTML = '';
+  upcoming.forEach(({ o, diff }) => {
+    const alert = diff < 0 ? 'overdue' : diff <= 3 ? 'soon' : '';
+    let label;
+    if (diff < 0) label = `En retard de ${Math.abs(diff)}j`;
+    else if (diff === 0) label = "Aujourd'hui";
+    else if (diff === 1) label = 'Demain';
+    else label = `Dans ${diff}j`;
+
+    const chip = document.createElement('div');
+    chip.className = 'today-chip' + (alert ? ' ' + alert : '');
+    chip.innerHTML = `
+      <div class="today-chip-top"><span>${escapeHtml(o.client)}</span></div>
+      <div class="today-chip-date">${label} - ${formatDate(o.deadline)}</div>
+    `;
+    chip.addEventListener('click', () => openEditModal(o.id));
+    list.appendChild(chip);
+  });
+}
+
+// ---------- Favicon / titre dynamiques ----------
+function updateFaviconAndTitle() {
+  const overdueCount = orders.filter(o => deadlineState(o) === 'overdue').length;
+  const activeCount = orders.filter(o => o.status !== 'livre').length;
+
+  if (overdueCount > 0) {
+    document.title = `(${overdueCount}) En retard - Commissions`;
+  } else if (activeCount > 0) {
+    document.title = `${activeCount} en cours - Commissions`;
+  } else {
+    document.title = 'Commissions';
+  }
+
+  const size = 64;
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  ctx.fillStyle = isDark ? '#f5f5f5' : '#0a0a0a';
+  ctx.beginPath();
+  ctx.arc(size / 2, size / 2, size / 2, 0, Math.PI * 2);
+  ctx.fill();
+
+  if (overdueCount > 0) {
+    ctx.fillStyle = '#c23b3b';
+    ctx.beginPath();
+    ctx.arc(size * 0.76, size * 0.24, size * 0.22, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#ffffff';
+    ctx.font = `bold ${size * 0.26}px sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(String(overdueCount > 9 ? '9+' : overdueCount), size * 0.76, size * 0.26);
+  }
+
+  document.getElementById('favicon').href = canvas.toDataURL('image/png');
 }
 
 // ---------- Objectif mensuel ----------
@@ -777,6 +960,8 @@ const modalOverlay = document.getElementById('modal-overlay');
 const modalTitle = document.getElementById('modal-title');
 const saveBtn = document.getElementById('save-btn');
 const deleteBtn = document.getElementById('delete-btn');
+const copyRecapBtn = document.getElementById('copy-recap-btn');
+const copyFeedback = document.getElementById('copy-feedback');
 
 document.getElementById('new-order-btn').addEventListener('click', () => openNewModal());
 document.getElementById('modal-close').addEventListener('click', closeModal);
@@ -787,6 +972,8 @@ function openNewModal() {
   modalTitle.textContent = 'Nouvelle commande';
   saveBtn.textContent = 'Ajouter';
   deleteBtn.classList.add('hidden');
+  copyRecapBtn.classList.add('hidden');
+  copyFeedback.textContent = '';
   document.getElementById('f-client').value = '';
   document.getElementById('f-type').value = 'Build';
   document.getElementById('f-desc').value = '';
@@ -803,6 +990,8 @@ function openEditModal(id) {
   modalTitle.textContent = 'Modifier la commande';
   saveBtn.textContent = 'Enregistrer';
   deleteBtn.classList.remove('hidden');
+  copyRecapBtn.classList.remove('hidden');
+  copyFeedback.textContent = '';
   document.getElementById('f-client').value = o.client;
   document.getElementById('f-type').value = o.type;
   document.getElementById('f-desc').value = o.description;
@@ -811,6 +1000,29 @@ function openEditModal(id) {
   document.getElementById('f-deadline').value = o.deadline || '';
   modalOverlay.classList.remove('hidden');
 }
+
+copyRecapBtn.addEventListener('click', () => {
+  if (!editingId) return;
+  const o = orders.find(x => x.id === editingId);
+  if (!o) return;
+  const lines = [
+    `Commande - ${o.client}`,
+    `Type : ${o.type}`,
+    `Statut : ${statusLabelOf(o.status)}`,
+    `Description : ${o.description}`
+  ];
+  if (o.deadline) lines.push(`Deadline : ${formatDate(o.deadline)}`);
+  if (o.price) lines.push(`Prix : ${o.price}`);
+  if (o.deposit) lines.push(`Acompte recu : ${o.deposit}`);
+  const text = lines.join('\n');
+
+  navigator.clipboard.writeText(text).then(() => {
+    copyFeedback.textContent = 'Copie !';
+    setTimeout(() => { copyFeedback.textContent = ''; }, 2000);
+  }).catch(() => {
+    copyFeedback.textContent = 'Impossible de copier';
+  });
+});
 
 function closeModal() {
   modalOverlay.classList.add('hidden');
