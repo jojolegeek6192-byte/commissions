@@ -18,10 +18,14 @@ met a jour tout seul, sans rien reconfigurer.
 
 ## Fonctionnalites
 
-- Kanban en 4 colonnes avec navigation par fleches
+- Kanban en 4 colonnes ou vue liste (pratique sur mobile), au choix
 - Graphique des revenus encaisses par mois
 - Graphique de repartition des commandes par type
 - Recherche par client / description et filtre par type
-- Alerte visuelle (bordure + badge) si une deadline est depassee ou arrive dans moins de 3 jours
+- Alerte visuelle si une deadline est depassee ou arrive dans moins de 3 jours
+- Champ acompte : suit le reste a payer par commande
+- Historique clients : total de commandes et revenu encaisse par client
+- Objectif de revenu mensuel avec barre de progression
+- Mode sombre (bouton en haut a droite, la preference est memorisee)
 - Clique sur une commande pour la modifier ou la supprimer
-- Export CSV de toutes les commandes (bouton en haut a droite)
+- Export CSV de toutes les commandes
