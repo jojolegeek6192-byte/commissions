@@ -356,8 +356,9 @@ function save() {
 
 function extractNumber(str) {
   if (!str) return 0;
-  const match = String(str).match(/[\d.]+/);
-  return match ? parseFloat(match[0]) : 0;
+  const match = String(str).replace(',', '.').match(/\d+(\.\d+)?/);
+  const val = match ? parseFloat(match[0]) : 0;
+  return isNaN(val) ? 0 : val;
 }
 
 function formatDate(d) {
