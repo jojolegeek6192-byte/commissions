@@ -244,6 +244,45 @@ body {
   content: attr(data-label); position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%);
   background: var(--text); color: var(--bg); font-size: 11px; padding: 4px 8px; border-radius: 6px; white-space: nowrap;
 }
+
+/* Calendrier */
+.calendar-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+.calendar-nav-btn { background: none; border: 1px solid var(--border); border-radius: 6px; padding: 6px 12px; cursor: pointer; color: var(--text); }
+.calendar-nav-btn:hover { background: var(--surface-alt); }
+.calendar-month-label { font-family: var(--font-head); font-weight: 600; font-size: 15px; text-transform: capitalize; }
+.calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+.calendar-weekday { font-size: 11px; color: var(--text-muted); text-align: center; text-transform: uppercase; padding-bottom: 6px; }
+.calendar-cell {
+  min-height: 84px; border: 1px solid var(--border); border-radius: 8px; padding: 6px; background: var(--surface);
+}
+.calendar-cell.empty { border: none; background: transparent; }
+.calendar-cell.today { border-color: var(--text); }
+.calendar-day-num { font-size: 11px; color: var(--text-muted); margin-bottom: 4px; }
+.calendar-item {
+  font-size: 11px; padding: 2px 6px; border-radius: 5px; background: var(--chip-bg); color: var(--text-secondary);
+  margin-bottom: 3px; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.calendar-item.overdue { background: var(--danger-bg); color: var(--danger); }
+.calendar-item.soon { background: var(--warning-bg); color: var(--warning); }
+.calendar-item.livre { background: #dcf0d6; color: #2f7a26; }
+[data-theme="dark"] .calendar-item.livre { background: #1e3a1a; color: #7fce6c; }
+
+/* Drag and drop */
+.card[draggable="true"] { cursor: grab; }
+.card.dragging { opacity: 0.4; }
+.column-list.drag-over { background: var(--surface-alt); border-radius: var(--radius); }
+
+/* Devis / recu imprimable */
+#print-devis { display: none; }
+@media print {
+  body * { visibility: hidden; }
+  #print-devis, #print-devis * { visibility: visible; }
+  #print-devis { display: block; position: absolute; top: 0; left: 0; width: 100%; padding: 40px; }
+}
+.devis-header { font-family: var(--font-head); font-size: 20px; font-weight: 600; margin-bottom: 4px; }
+.devis-sub { font-size: 12px; color: #666; margin-bottom: 24px; }
+.devis-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #ddd; font-size: 14px; }
+.devis-total { font-weight: 700; font-size: 16px; margin-top: 16px; }
 .avg-title { font-size: 12px; color: var(--text-muted); margin: 0 0 12px; }
 .avg-list { display: flex; gap: 20px; flex-wrap: wrap; }
 .avg-item { display: flex; flex-direction: column; gap: 2px; }
@@ -351,7 +390,7 @@ body {
 
     <section class="charts">
       <div class="chart-card">
-        <p class="chart-title">Revenus encaisses par mois</p>
+        <p class="chart-title">Revenus encaisses par mois (en RBX)</p>
         <div class="chart-box"><canvas id="chart-revenue"></canvas></div>
       </div>
       <div class="chart-card">
@@ -384,6 +423,7 @@ body {
       <div class="seg">
         <button id="view-kanban" class="active">Kanban</button>
         <button id="view-list">Liste</button>
+        <button id="view-calendar">Calendrier</button>
       </div>
     </div>
 
@@ -393,6 +433,14 @@ body {
         <span>Client</span><span>Type</span><span>Description</span><span>Prix</span><span>Deadline</span><span>Statut</span>
       </div>
       <div id="list-view"></div>
+    </section>
+    <section class="hidden" id="calendar-container">
+      <div class="calendar-nav">
+        <button class="calendar-nav-btn" id="calendar-prev">&larr;</button>
+        <span class="calendar-month-label" id="calendar-label"></span>
+        <button class="calendar-nav-btn" id="calendar-next">&rarr;</button>
+      </div>
+      <div class="calendar-grid" id="calendar-grid"></div>
     </section>
   </main>
 
@@ -425,13 +473,20 @@ body {
         </div>
         <div class="field-row">
           <div class="field">
-            <label for="f-price">Prix total</label>
-            <input type="text" id="f-price" placeholder="ex: 500 R$ ou 20e" />
+            <label for="f-price">Montant</label>
+            <input type="text" id="f-price" placeholder="ex: 500" />
           </div>
           <div class="field">
-            <label for="f-deposit">Acompte verse</label>
-            <input type="text" id="f-deposit" placeholder="ex: 200 R$" />
+            <label for="f-currency">Devise</label>
+            <select id="f-currency">
+              <option value="RBX">Robux</option>
+              <option value="EUR">Euros</option>
+            </select>
           </div>
+        </div>
+        <div class="field">
+          <label for="f-deposit">Acompte verse</label>
+          <input type="text" id="f-deposit" placeholder="ex: 200" />
         </div>
         <div class="field">
           <label for="f-deadline">Deadline</label>
@@ -439,9 +494,10 @@ body {
         </div>
       </div>
       <div class="modal-footer">
-        <div style="display:flex; gap:10px; align-items:center;">
+        <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
           <button id="delete-btn" class="btn btn-ghost hidden">Supprimer</button>
           <button id="copy-recap-btn" class="btn btn-ghost hidden">Copier le recap</button>
+          <button id="print-devis-btn" class="btn btn-ghost hidden">Generer un devis</button>
           <span class="copy-feedback" id="copy-feedback"></span>
         </div>
         <div class="modal-footer-right">
@@ -450,6 +506,16 @@ body {
         </div>
       </div>
     </div>
+  </div>
+
+  <div id="print-devis">
+    <p class="devis-header">Devis / Recu</p>
+    <p class="devis-sub" id="print-date"></p>
+    <div class="devis-row"><span>Client</span><span id="print-client"></span></div>
+    <div class="devis-row"><span>Type</span><span id="print-type"></span></div>
+    <div class="devis-row"><span>Description</span><span id="print-desc"></span></div>
+    <div class="devis-row"><span>Deadline</span><span id="print-deadline"></span></div>
+    <div class="devis-row devis-total"><span>Montant</span><span id="print-price"></span></div>
   </div>
 
   <div id="clients-overlay" class="modal-overlay hidden">
@@ -482,6 +548,11 @@ body {
         <button id="data-close" class="icon-btn" aria-label="Fermer">&times;</button>
       </div>
       <div class="modal-body">
+        <p class="data-section-title">Devise</p>
+        <div style="display:flex; align-items:center; gap:10px;">
+          <span style="font-size:13px; color:var(--text-secondary);" id="rate-display"></span>
+          <button class="goal-edit" id="rate-edit-btn">Modifier le taux</button>
+        </div>
         <p class="data-section-title">Export / Import</p>
         <div style="display:flex; gap:10px; flex-wrap:wrap;">
           <button id="export-btn" class="btn btn-ghost">Exporter en CSV</button>
@@ -507,6 +578,24 @@ const STORAGE_KEY = 'commissions_data';
 const THEME_KEY = 'commissions_theme';
 const GOAL_KEY = 'commissions_goal';
 const VIEW_KEY = 'commissions_view';
+const RATE_KEY = 'commissions_rate';
+
+function getRate() {
+  return parseFloat(localStorage.getItem(RATE_KEY) || '280');
+}
+
+function toRBX(amount, currency) {
+  if (currency === 'EUR') return amount * getRate();
+  return amount;
+}
+
+function amountInRBX(o) {
+  return toRBX(extractNumber(o.price), o.currency || 'RBX');
+}
+
+function depositInRBX(o) {
+  return toRBX(extractNumber(o.deposit), o.currency || 'RBX');
+}
 
 let orders = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
 let editingId = null;
@@ -601,23 +690,117 @@ document.getElementById('theme-toggle').addEventListener('click', () => {
   applyTheme();
 });
 
-// ---------- Vue kanban / liste ----------
+// ---------- Vue kanban / liste / calendrier ----------
 function setView(mode) {
   viewMode = mode;
   localStorage.setItem(VIEW_KEY, mode);
   document.getElementById('view-kanban').classList.toggle('active', mode === 'kanban');
   document.getElementById('view-list').classList.toggle('active', mode === 'list');
+  document.getElementById('view-calendar').classList.toggle('active', mode === 'calendar');
   document.getElementById('board').classList.toggle('hidden', mode !== 'kanban');
   document.getElementById('list-container').classList.toggle('hidden', mode !== 'list');
+  document.getElementById('calendar-container').classList.toggle('hidden', mode !== 'calendar');
   render();
 }
 document.getElementById('view-kanban').addEventListener('click', () => setView('kanban'));
 document.getElementById('view-list').addEventListener('click', () => setView('list'));
+document.getElementById('view-calendar').addEventListener('click', () => setView('calendar'));
 
 // ---------- Rendu ----------
 function render() {
-  if (viewMode === 'kanban') renderBoard(); else renderList();
+  if (viewMode === 'kanban') renderBoard();
+  else if (viewMode === 'calendar') renderCalendarView();
+  else renderList();
 }
+
+let currentCalendarDate = new Date();
+currentCalendarDate.setDate(1);
+
+function renderCalendarView() {
+  const filtered = getFilteredOrders();
+  computeStats(filtered);
+
+  const label = document.getElementById('calendar-label');
+  const grid = document.getElementById('calendar-grid');
+  const moisNoms = ['Janvier','Fevrier','Mars','Avril','Mai','Juin','Juillet','Aout','Septembre','Octobre','Novembre','Decembre'];
+  label.textContent = `${moisNoms[currentCalendarDate.getMonth()]} ${currentCalendarDate.getFullYear()}`;
+
+  grid.innerHTML = '';
+  ['Lun','Mar','Mer','Jeu','Ven','Sam','Dim'].forEach(d => {
+    const el = document.createElement('div');
+    el.className = 'calendar-weekday';
+    el.textContent = d;
+    grid.appendChild(el);
+  });
+
+  const year = currentCalendarDate.getFullYear();
+  const month = currentCalendarDate.getMonth();
+  const firstDay = new Date(year, month, 1);
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const leading = (firstDay.getDay() + 6) % 7;
+
+  const today = new Date();
+  const todayKey = today.toISOString().slice(0, 10);
+
+  const byDay = {};
+  filtered.forEach(o => {
+    if (!o.deadline) return;
+    byDay[o.deadline] = byDay[o.deadline] || [];
+    byDay[o.deadline].push(o);
+  });
+
+  for (let i = 0; i < leading; i++) {
+    const cell = document.createElement('div');
+    cell.className = 'calendar-cell empty';
+    grid.appendChild(cell);
+  }
+
+  for (let day = 1; day <= daysInMonth; day++) {
+    const dateKey = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    const cell = document.createElement('div');
+    cell.className = 'calendar-cell' + (dateKey === todayKey ? ' today' : '');
+    const num = document.createElement('div');
+    num.className = 'calendar-day-num';
+    num.textContent = day;
+    cell.appendChild(num);
+
+    (byDay[dateKey] || []).forEach(o => {
+      const alert = deadlineState(o);
+      const item = document.createElement('div');
+      let cls = 'calendar-item';
+      if (o.status === 'livre') cls += ' livre';
+      else if (alert === 'overdue') cls += ' overdue';
+      else if (alert === 'soon') cls += ' soon';
+      item.className = cls;
+      item.textContent = o.client;
+      item.title = `${o.client} - ${o.type}`;
+      item.addEventListener('click', () => openEditModal(o.id));
+      cell.appendChild(item);
+    });
+
+    grid.appendChild(cell);
+  }
+
+  renderCharts();
+  renderGoal();
+  renderAvgDelivery();
+  renderStreak();
+  renderToday();
+  updateFaviconAndTitle();
+  renderGreeting();
+  renderRecords();
+  renderHeatmap();
+  renderTimeline();
+}
+
+document.getElementById('calendar-prev').addEventListener('click', () => {
+  currentCalendarDate.setMonth(currentCalendarDate.getMonth() - 1);
+  renderCalendarView();
+});
+document.getElementById('calendar-next').addEventListener('click', () => {
+  currentCalendarDate.setMonth(currentCalendarDate.getMonth() + 1);
+  renderCalendarView();
+});
 
 function statusLabelOf(key) {
   const s = STATUSES.find(s => s.key === key);
@@ -627,8 +810,8 @@ function statusLabelOf(key) {
 function computeStats(filtered) {
   let active = 0, pendingValue = 0, paidValue = 0;
   filtered.forEach(o => {
-    const total = extractNumber(o.price);
-    const deposit = extractNumber(o.deposit);
+    const total = amountInRBX(o);
+    const deposit = depositInRBX(o);
     if (o.status === 'livre') {
       paidValue += total;
     } else {
@@ -638,8 +821,8 @@ function computeStats(filtered) {
     }
   });
   document.getElementById('stat-active').textContent = active;
-  document.getElementById('stat-pending').textContent = pendingValue.toLocaleString('fr-FR');
-  document.getElementById('stat-paid').textContent = paidValue.toLocaleString('fr-FR');
+  document.getElementById('stat-pending').textContent = pendingValue.toLocaleString('fr-FR') + ' RBX';
+  document.getElementById('stat-paid').textContent = paidValue.toLocaleString('fr-FR') + ' RBX';
   document.getElementById('stat-total').textContent = orders.length;
 }
 
@@ -664,6 +847,7 @@ function renderBoard() {
 
     const list = document.createElement('div');
     list.className = 'column-list';
+    list.dataset.status = st.key;
 
     if (items.length === 0) {
       const empty = document.createElement('div');
@@ -678,10 +862,12 @@ function renderBoard() {
       const canRight = idx < STATUSES.length - 1;
       const alert = deadlineState(o);
       const remaining = extractNumber(o.price) - extractNumber(o.deposit);
+      const currencyLabel = (o.currency || 'RBX') === 'EUR' ? '\u20ac' : 'RBX';
 
       const card = document.createElement('div');
       card.className = 'card' + (alert === 'overdue' ? ' overdue' : alert === 'soon' ? ' soon' : '');
       card.dataset.id = o.id;
+      card.draggable = true;
       card.innerHTML = `
         <div class="card-top">
           <span class="card-client">${escapeHtml(o.client)}</span>
@@ -696,8 +882,8 @@ function renderBoard() {
         <div class="card-meta">
           <span>${o.deadline ? formatDate(o.deadline) : ''}</span>
           <span style="text-align:right;">
-            <span class="card-price">${escapeHtml(o.price || '-')}</span>
-            ${o.deposit && st.key !== 'livre' ? `<br/><span class="card-remaining">reste ${remaining.toLocaleString('fr-FR')}</span>` : ''}
+            <span class="card-price">${o.price ? escapeHtml(o.price) + ' ' + currencyLabel : '-'}</span>
+            ${o.deposit && st.key !== 'livre' ? `<br/><span class="card-remaining">reste ${remaining.toLocaleString('fr-FR')} ${currencyLabel}</span>` : ''}
           </span>
         </div>
         <div class="card-actions">
@@ -750,7 +936,7 @@ function renderList() {
       <span class="list-row-client">${escapeHtml(o.client)}</span>
       <span class="card-tag" style="justify-self:start;">${escapeHtml(o.type)}</span>
       <span class="list-row-desc">${escapeHtml(o.description)}</span>
-      <span class="list-row-price">${escapeHtml(o.price || '-')}</span>
+      <span class="list-row-price">${o.price ? escapeHtml(o.price) + ' ' + currencyLabelOf(o) : '-'}</span>
       <span class="list-row-deadline">${o.deadline ? formatDate(o.deadline) : '-'}</span>
       <span class="status-pill">${statusLabelOf(o.status)}</span>
     `;
@@ -768,6 +954,16 @@ function renderList() {
   renderRecords();
   renderHeatmap();
   renderTimeline();
+}
+
+function setOrderStatus(order, newKey) {
+  order.status = newKey;
+  if (newKey === 'livre' && !order.paidAt) {
+    order.paidAt = new Date().toISOString();
+    fireConfetti();
+  }
+  save();
+  render();
 }
 
 function attachRowEvents() {
@@ -788,18 +984,39 @@ function attachRowEvents() {
       const idx = STATUSES.findIndex(s => s.key === order.status);
       const next = STATUSES[idx + dir];
       if (!next) return;
-      order.status = next.key;
-      if (next.key === 'livre' && !order.paidAt) {
-        order.paidAt = new Date().toISOString();
-        fireConfetti();
-      }
-      save();
-      render();
+      setOrderStatus(order, next.key);
     });
   });
 
   document.querySelectorAll('.card, .list-row').forEach(el => {
     el.addEventListener('click', () => openEditModal(el.dataset.id));
+  });
+
+  // Drag and drop entre colonnes
+  document.querySelectorAll('.card').forEach(card => {
+    card.addEventListener('dragstart', (e) => {
+      e.dataTransfer.setData('text/plain', card.dataset.id);
+      setTimeout(() => card.classList.add('dragging'), 0);
+    });
+    card.addEventListener('dragend', () => card.classList.remove('dragging'));
+  });
+
+  document.querySelectorAll('.column-list').forEach(list => {
+    list.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      list.classList.add('drag-over');
+    });
+    list.addEventListener('dragleave', () => list.classList.remove('drag-over'));
+    list.addEventListener('drop', (e) => {
+      e.preventDefault();
+      list.classList.remove('drag-over');
+      const id = e.dataTransfer.getData('text/plain');
+      const order = orders.find(o => o.id === id);
+      if (!order) return;
+      const newKey = list.dataset.status;
+      if (order.status === newKey) return;
+      setOrderStatus(order, newKey);
+    });
   });
 }
 
@@ -827,7 +1044,7 @@ function renderCharts() {
       const dateStr = o.paidAt || o.createdAt || new Date().toISOString();
       const d = new Date(dateStr);
       const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
-      monthly[key] = (monthly[key] || 0) + extractNumber(o.price);
+      monthly[key] = (monthly[key] || 0) + amountInRBX(o);
     });
     const keys = Object.keys(monthly).sort();
     const labels = keys.map(k => {
@@ -1069,9 +1286,9 @@ function renderRecords() {
   const container = document.getElementById('records-list');
   const items = [];
 
-  const biggest = orders.reduce((max, o) => extractNumber(o.price) > extractNumber(max ? max.price : '0') ? o : max, null);
-  if (biggest && extractNumber(biggest.price) > 0) {
-    items.push({ label: 'Plus grosse commande', value: biggest.price, sub: biggest.client });
+  const biggest = orders.reduce((max, o) => amountInRBX(o) > (max ? amountInRBX(max) : 0) ? o : max, null);
+  if (biggest && amountInRBX(biggest) > 0) {
+    items.push({ label: 'Plus grosse commande', value: `${biggest.price} ${currencyLabelOf(biggest)}`, sub: biggest.client });
   }
 
   const paidOrders = orders.filter(o => o.status === 'livre' && o.paidAt && o.createdAt);
@@ -1259,9 +1476,9 @@ document.getElementById('sort-select').addEventListener('change', (e) => {
 
 // ---------- Export CSV ----------
 document.getElementById('export-btn').addEventListener('click', () => {
-  const headers = ['Client', 'Type', 'Description', 'Prix', 'Acompte', 'Deadline', 'Statut'];
+  const headers = ['Client', 'Type', 'Description', 'Prix', 'Devise', 'Acompte', 'Deadline', 'Statut'];
   const rows = orders.map(o => [
-    o.client, o.type, o.description, o.price || '', o.deposit || '', o.deadline || '', statusLabelOf(o.status)
+    o.client, o.type, o.description, o.price || '', o.currency || 'RBX', o.deposit || '', o.deadline || '', statusLabelOf(o.status)
   ]);
   const csv = [headers, ...rows]
     .map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
@@ -1313,9 +1530,10 @@ document.getElementById('import-file').addEventListener('change', (e) => {
         type: r[1] || 'Autre',
         description: r[2] || '',
         price: r[3] || '',
-        deposit: r[4] || '',
-        deadline: r[5] || '',
-        status: statusKeyByLabel[r[6]] || 'attente',
+        currency: (r[4] === 'EUR' ? 'EUR' : 'RBX'),
+        deposit: r[5] || '',
+        deadline: r[6] || '',
+        status: statusKeyByLabel[r[7]] || 'attente',
         createdAt: new Date().toISOString()
       }));
       const confirmMsg = `Ajouter ${imported.length} commande(s) importee(s) a tes commandes actuelles ?`;
@@ -1355,9 +1573,25 @@ notesTextarea.addEventListener('input', () => {
 const dataOverlay = document.getElementById('data-overlay');
 document.getElementById('data-btn').addEventListener('click', () => {
   renderBackups();
+  renderRate();
   dataOverlay.classList.remove('hidden');
 });
 document.getElementById('data-close').addEventListener('click', () => dataOverlay.classList.add('hidden'));
+
+function renderRate() {
+  document.getElementById('rate-display').textContent = `1 EUR = ${getRate()} RBX`;
+}
+
+document.getElementById('rate-edit-btn').addEventListener('click', () => {
+  const input = window.prompt('Combien de Robux vaut 1 euro pour toi ?', String(getRate()));
+  if (input === null) return;
+  const val = parseFloat(input.replace(',', '.'));
+  if (!isNaN(val) && val > 0) {
+    localStorage.setItem(RATE_KEY, String(val));
+    renderRate();
+    render();
+  }
+});
 
 function renderBackups() {
   const backups = JSON.parse(localStorage.getItem(BACKUP_KEY) || '[]');
@@ -1447,6 +1681,8 @@ const deleteBtn = document.getElementById('delete-btn');
 const copyRecapBtn = document.getElementById('copy-recap-btn');
 const copyFeedback = document.getElementById('copy-feedback');
 
+const printDevisBtn = document.getElementById('print-devis-btn');
+
 document.getElementById('new-order-btn').addEventListener('click', () => openNewModal());
 document.getElementById('modal-close').addEventListener('click', closeModal);
 document.getElementById('cancel-btn').addEventListener('click', closeModal);
@@ -1457,11 +1693,13 @@ function openNewModal() {
   saveBtn.textContent = 'Ajouter';
   deleteBtn.classList.add('hidden');
   copyRecapBtn.classList.add('hidden');
+  printDevisBtn.classList.add('hidden');
   copyFeedback.textContent = '';
   document.getElementById('f-client').value = '';
   document.getElementById('f-type').value = 'Build';
   document.getElementById('f-desc').value = '';
   document.getElementById('f-price').value = '';
+  document.getElementById('f-currency').value = 'RBX';
   document.getElementById('f-deposit').value = '';
   document.getElementById('f-deadline').value = '';
   modalOverlay.classList.remove('hidden');
@@ -1475,20 +1713,27 @@ function openEditModal(id) {
   saveBtn.textContent = 'Enregistrer';
   deleteBtn.classList.remove('hidden');
   copyRecapBtn.classList.remove('hidden');
+  printDevisBtn.classList.remove('hidden');
   copyFeedback.textContent = '';
   document.getElementById('f-client').value = o.client;
   document.getElementById('f-type').value = o.type;
   document.getElementById('f-desc').value = o.description;
   document.getElementById('f-price').value = o.price || '';
+  document.getElementById('f-currency').value = o.currency || 'RBX';
   document.getElementById('f-deposit').value = o.deposit || '';
   document.getElementById('f-deadline').value = o.deadline || '';
   modalOverlay.classList.remove('hidden');
+}
+
+function currencyLabelOf(o) {
+  return (o.currency || 'RBX') === 'EUR' ? '\u20ac' : 'RBX';
 }
 
 copyRecapBtn.addEventListener('click', () => {
   if (!editingId) return;
   const o = orders.find(x => x.id === editingId);
   if (!o) return;
+  const cur = currencyLabelOf(o);
   const lines = [
     `Commande - ${o.client}`,
     `Type : ${o.type}`,
@@ -1496,8 +1741,8 @@ copyRecapBtn.addEventListener('click', () => {
     `Description : ${o.description}`
   ];
   if (o.deadline) lines.push(`Deadline : ${formatDate(o.deadline)}`);
-  if (o.price) lines.push(`Prix : ${o.price}`);
-  if (o.deposit) lines.push(`Acompte recu : ${o.deposit}`);
+  if (o.price) lines.push(`Prix : ${o.price} ${cur}`);
+  if (o.deposit) lines.push(`Acompte recu : ${o.deposit} ${cur}`);
   const text = lines.join('\n');
 
   navigator.clipboard.writeText(text).then(() => {
@@ -1506,6 +1751,20 @@ copyRecapBtn.addEventListener('click', () => {
   }).catch(() => {
     copyFeedback.textContent = 'Impossible de copier';
   });
+});
+
+printDevisBtn.addEventListener('click', () => {
+  if (!editingId) return;
+  const o = orders.find(x => x.id === editingId);
+  if (!o) return;
+  const cur = currencyLabelOf(o);
+  document.getElementById('print-date').textContent = `Genere le ${new Date().toLocaleDateString('fr-FR')}`;
+  document.getElementById('print-client').textContent = o.client;
+  document.getElementById('print-type').textContent = o.type;
+  document.getElementById('print-desc').textContent = o.description;
+  document.getElementById('print-deadline').textContent = o.deadline ? formatDate(o.deadline) : '-';
+  document.getElementById('print-price').textContent = o.price ? `${o.price} ${cur}` : '-';
+  window.print();
 });
 
 function closeModal() {
@@ -1526,17 +1785,18 @@ saveBtn.addEventListener('click', () => {
   const type = document.getElementById('f-type').value;
   const description = document.getElementById('f-desc').value.trim();
   const price = document.getElementById('f-price').value.trim();
+  const currency = document.getElementById('f-currency').value;
   const deposit = document.getElementById('f-deposit').value.trim();
   const deadline = document.getElementById('f-deadline').value;
   if (!client || !description) return;
 
   if (editingId) {
     const o = orders.find(x => x.id === editingId);
-    Object.assign(o, { client, type, description, price, deposit, deadline });
+    Object.assign(o, { client, type, description, price, currency, deposit, deadline });
   } else {
     orders.push({
       id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
-      client, type, description, price, deposit, deadline,
+      client, type, description, price, currency, deposit, deadline,
       status: 'attente',
       createdAt: new Date().toISOString()
     });
