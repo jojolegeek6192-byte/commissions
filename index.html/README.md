@@ -28,10 +28,14 @@ met a jour tout seul, sans rien reconfigurer.
 - Alerte visuelle si une deadline est depassee ou arrive dans moins de 3 jours
 - Champ acompte : suit le reste a payer par commande
 - Historique clients : total de commandes et revenu encaisse par client
-- Objectif de revenu mensuel avec barre de progression
+- Objectif de revenu mensuel avec barre de progression qui change de couleur (gris vers dore) en approchant de 100%
 - Mode sombre (bouton en haut a droite, la preference est memorisee)
 - Petite animation de confettis quand une commande passe en "Livre / paye"
 - Badge "livrees ce mois" a cote du logo
+- Message d'accueil et petit indicateur meteo ironique selon le nombre de commandes actives
+- Widget "Records perso" : plus grosse commande, livraison la plus rapide, client le plus fidele
+- Heatmap d'activite des 12 dernieres semaines, façon GitHub
+- Frise chronologique de toutes tes commandes
 - Section "A surveiller cette semaine" avec les deadlines proches
 - Titre d'onglet et icone qui indiquent le nombre de commandes en retard
 - Bouton "Copier le recap" dans une commande pour coller un resume au client

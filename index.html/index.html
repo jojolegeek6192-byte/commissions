@@ -111,7 +111,7 @@ body {
 }
 .goal-label { font-size: 12px; color: var(--text-muted); white-space: nowrap; }
 .goal-bar-track { flex: 1; min-width: 160px; height: 8px; border-radius: 20px; background: var(--chip-bg); overflow: hidden; }
-.goal-bar-fill { height: 100%; background: var(--text); border-radius: 20px; transition: width 0.2s ease; }
+.goal-bar-fill { height: 100%; background: var(--text); border-radius: 20px; transition: width 0.2s ease, background-color 0.3s ease; }
 .goal-value { font-size: 13px; font-weight: 600; white-space: nowrap; }
 .goal-edit { background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 12px; text-decoration: underline; }
 
@@ -205,6 +205,45 @@ body {
 .goal-compare.down { color: var(--danger); }
 
 .avg-card { border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 20px; margin-bottom: 32px; background: var(--surface); }
+
+.greeting { font-size: 13px; color: var(--text-muted); margin: 0 0 20px; }
+
+.records-card { border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 20px; margin-bottom: 24px; background: var(--surface); }
+.records-title { font-size: 12px; color: var(--text-muted); margin: 0 0 12px; }
+.records-list { display: flex; gap: 24px; flex-wrap: wrap; }
+.record-item { display: flex; flex-direction: column; gap: 2px; }
+.record-item-label { font-size: 11px; color: var(--text-muted); }
+.record-item-value { font-family: var(--font-head); font-size: 15px; font-weight: 600; }
+.record-item-sub { font-size: 11px; color: var(--text-muted); }
+
+.heatmap-card { border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 20px; margin-bottom: 24px; background: var(--surface); overflow-x: auto; }
+.heatmap-title { font-size: 12px; color: var(--text-muted); margin: 0 0 12px; }
+.heatmap-grid { display: grid; grid-auto-flow: column; grid-template-rows: repeat(7, 12px); gap: 3px; width: max-content; }
+.heatmap-cell { width: 12px; height: 12px; border-radius: 3px; background: var(--chip-bg); }
+.heatmap-cell.i1 { background: #c9dfc4; }
+.heatmap-cell.i2 { background: #8fc383; }
+.heatmap-cell.i3 { background: #4f9e42; }
+.heatmap-cell.i4 { background: #2c6b23; }
+[data-theme="dark"] .heatmap-cell.i1 { background: #274d27; }
+[data-theme="dark"] .heatmap-cell.i2 { background: #35722f; }
+[data-theme="dark"] .heatmap-cell.i3 { background: #48a63c; }
+[data-theme="dark"] .heatmap-cell.i4 { background: #62e04f; }
+
+.timeline-card { border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 20px; margin-bottom: 24px; background: var(--surface); }
+.timeline-title { font-size: 12px; color: var(--text-muted); margin: 0 0 16px; }
+.timeline-track { position: relative; display: flex; align-items: center; gap: 0; overflow-x: auto; padding: 10px 4px 4px; }
+.timeline-track::before { content: ''; position: absolute; left: 4px; right: 4px; top: 50%; height: 1px; background: var(--border); }
+.timeline-dot {
+  flex: 0 0 auto; width: 10px; height: 10px; border-radius: 50%; background: var(--text-faint);
+  margin-right: 22px; cursor: pointer; position: relative; z-index: 1; border: 2px solid var(--surface);
+}
+.timeline-dot.livre { background: #4f9e42; }
+.timeline-dot.overdue { background: var(--danger); }
+.timeline-dot.soon { background: var(--warning); }
+.timeline-dot:hover::after {
+  content: attr(data-label); position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%);
+  background: var(--text); color: var(--bg); font-size: 11px; padding: 4px 8px; border-radius: 6px; white-space: nowrap;
+}
 .avg-title { font-size: 12px; color: var(--text-muted); margin: 0 0 12px; }
 .avg-list { display: flex; gap: 20px; flex-wrap: wrap; }
 .avg-item { display: flex; flex-direction: column; gap: 2px; }
@@ -262,6 +301,7 @@ body {
   </header>
 
   <main class="main">
+    <p class="greeting" id="greeting"></p>
     <section class="stats">
       <div class="stat-card">
         <span class="stat-label">Commandes actives</span>
@@ -289,10 +329,25 @@ body {
       <button class="goal-edit" id="goal-edit-btn">Modifier</button>
     </div>
 
+    <div class="records-card">
+      <p class="records-title">Records perso</p>
+      <div class="records-list" id="records-list"></div>
+    </div>
+
     <section class="today-section hidden" id="today-section">
       <p class="today-title">A surveiller cette semaine</p>
       <div class="today-list" id="today-list"></div>
     </section>
+
+    <div class="heatmap-card">
+      <p class="heatmap-title">Activite des 12 dernieres semaines</p>
+      <div class="heatmap-grid" id="heatmap-grid"></div>
+    </div>
+
+    <div class="timeline-card">
+      <p class="timeline-title">Frise chronologique des commandes</p>
+      <div class="timeline-track" id="timeline-track"></div>
+    </div>
 
     <section class="charts">
       <div class="chart-card">
@@ -664,6 +719,10 @@ function renderBoard() {
   renderStreak();
   renderToday();
   updateFaviconAndTitle();
+  renderGreeting();
+  renderRecords();
+  renderHeatmap();
+  renderTimeline();
 }
 
 function renderList() {
@@ -705,6 +764,10 @@ function renderList() {
   renderStreak();
   renderToday();
   updateFaviconAndTitle();
+  renderGreeting();
+  renderRecords();
+  renderHeatmap();
+  renderTimeline();
 }
 
 function attachRowEvents() {
@@ -982,6 +1045,158 @@ function renderAvgDelivery() {
   });
 }
 
+// ---------- Message d'accueil + meteo ironique ----------
+function renderGreeting() {
+  const hour = new Date().getHours();
+  let greet;
+  if (hour < 6) greet = 'Encore debout ?';
+  else if (hour < 12) greet = 'Bonjour !';
+  else if (hour < 18) greet = 'Bon apres-midi !';
+  else greet = 'Bonsoir !';
+
+  const activeCount = orders.filter(o => o.status !== 'livre').length;
+  let weather;
+  if (activeCount === 0) weather = 'ciel degage, aucune commande en attente \u2600\ufe0f';
+  else if (activeCount <= 2) weather = 'petites averses de commandes \ud83c\udf26\ufe0f';
+  else if (activeCount <= 5) weather = 'pluie de commandes \u2614';
+  else weather = 'tempete de commandes \u26c8\ufe0f';
+
+  document.getElementById('greeting').textContent = `${greet} Aujourd'hui : ${weather}`;
+}
+
+// ---------- Records perso ----------
+function renderRecords() {
+  const container = document.getElementById('records-list');
+  const items = [];
+
+  const biggest = orders.reduce((max, o) => extractNumber(o.price) > extractNumber(max ? max.price : '0') ? o : max, null);
+  if (biggest && extractNumber(biggest.price) > 0) {
+    items.push({ label: 'Plus grosse commande', value: biggest.price, sub: biggest.client });
+  }
+
+  const paidOrders = orders.filter(o => o.status === 'livre' && o.paidAt && o.createdAt);
+  if (paidOrders.length > 0) {
+    const fastest = paidOrders.reduce((min, o) => {
+      const days = (new Date(o.paidAt) - new Date(o.createdAt)) / 86400000;
+      const minDays = min ? (new Date(min.paidAt) - new Date(min.createdAt)) / 86400000 : Infinity;
+      return days < minDays ? o : min;
+    }, null);
+    if (fastest) {
+      const days = Math.max(0, (new Date(fastest.paidAt) - new Date(fastest.createdAt)) / 86400000);
+      items.push({ label: 'Livraison la plus rapide', value: `${days.toFixed(1)} j`, sub: fastest.client });
+    }
+  }
+
+  const clientCounts = {};
+  orders.forEach(o => {
+    const key = o.client.trim().toLowerCase();
+    clientCounts[key] = clientCounts[key] || { name: o.client, count: 0 };
+    clientCounts[key].count++;
+  });
+  const loyalest = Object.values(clientCounts).sort((a, b) => b.count - a.count)[0];
+  if (loyalest && loyalest.count > 1) {
+    items.push({ label: 'Client le plus fidele', value: loyalest.name, sub: `${loyalest.count} commandes` });
+  }
+
+  if (items.length === 0) {
+    container.innerHTML = '<p class="chart-empty" style="padding:0;">Pas encore de records, continue comme ca !</p>';
+    return;
+  }
+
+  container.innerHTML = items.map(it => `
+    <div class="record-item">
+      <span class="record-item-label">${escapeHtml(it.label)}</span>
+      <span class="record-item-value">${escapeHtml(it.value)}</span>
+      <span class="record-item-sub">${escapeHtml(it.sub)}</span>
+    </div>
+  `).join('');
+}
+
+// ---------- Heatmap d'activite ----------
+function renderHeatmap() {
+  const container = document.getElementById('heatmap-grid');
+  container.innerHTML = '';
+  const days = 91;
+  const counts = {};
+  orders.forEach(o => {
+    if (o.createdAt) {
+      const key = o.createdAt.slice(0, 10);
+      counts[key] = (counts[key] || 0) + 1;
+    }
+    if (o.paidAt) {
+      const key = o.paidAt.slice(0, 10);
+      counts[key] = (counts[key] || 0) + 1;
+    }
+  });
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const start = new Date(today);
+  start.setDate(start.getDate() - (days - 1));
+  const startDay = start.getDay();
+  const leadingBlanks = (startDay + 6) % 7;
+
+  for (let i = 0; i < leadingBlanks; i++) {
+    const blank = document.createElement('div');
+    blank.style.visibility = 'hidden';
+    blank.className = 'heatmap-cell';
+    container.appendChild(blank);
+  }
+
+  for (let i = 0; i < days; i++) {
+    const d = new Date(start);
+    d.setDate(d.getDate() + i);
+    const key = d.toISOString().slice(0, 10);
+    const count = counts[key] || 0;
+    const cell = document.createElement('div');
+    let cls = 'heatmap-cell';
+    if (count >= 4) cls += ' i4';
+    else if (count === 3) cls += ' i3';
+    else if (count === 2) cls += ' i2';
+    else if (count === 1) cls += ' i1';
+    cell.className = cls;
+    cell.title = `${d.toLocaleDateString('fr-FR')} : ${count} evenement${count !== 1 ? 's' : ''}`;
+    container.appendChild(cell);
+  }
+}
+
+// ---------- Frise chronologique ----------
+function renderTimeline() {
+  const container = document.getElementById('timeline-track');
+  const sorted = orders
+    .filter(o => o.createdAt)
+    .slice()
+    .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+
+  if (sorted.length === 0) {
+    container.innerHTML = '<p class="chart-empty" style="padding:0;">Aucune commande pour le moment</p>';
+    return;
+  }
+
+  container.innerHTML = '';
+  sorted.forEach(o => {
+    const alert = deadlineState(o);
+    const dot = document.createElement('div');
+    let cls = 'timeline-dot';
+    if (o.status === 'livre') cls += ' livre';
+    else if (alert === 'overdue') cls += ' overdue';
+    else if (alert === 'soon') cls += ' soon';
+    dot.className = cls;
+    const d = new Date(o.createdAt);
+    dot.dataset.label = `${o.client} - ${d.toLocaleDateString('fr-FR')}`;
+    dot.addEventListener('click', () => openEditModal(o.id));
+    container.appendChild(dot);
+  });
+}
+
+function goalBarColor(pct) {
+  const start = [138, 138, 138];
+  const end = [212, 175, 55];
+  const t = Math.min(1, Math.max(0, pct / 100));
+  const rgb = start.map((s, i) => Math.round(s + (end[i] - s) * t));
+  return `rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`;
+}
+
 // ---------- Objectif mensuel ----------
 function renderGoal() {
   const goal = parseFloat(localStorage.getItem(GOAL_KEY) || '0');
@@ -997,6 +1212,7 @@ function renderGoal() {
 
   const pct = goal > 0 ? Math.min(100, (paidThisMonth / goal) * 100) : 0;
   document.getElementById('goal-fill').style.width = pct + '%';
+  document.getElementById('goal-fill').style.backgroundColor = goalBarColor(pct);
   document.getElementById('goal-value').textContent = `${paidThisMonth.toLocaleString('fr-FR')} / ${goal.toLocaleString('fr-FR')} R$`;
 
   const lastMonthDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
