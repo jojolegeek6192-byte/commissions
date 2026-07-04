@@ -4,6 +4,9 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <link rel="icon" id="favicon" href="" />
+<link rel="manifest" href="manifest.json" />
+<link rel="apple-touch-icon" href="icon-192.png" />
+<meta name="theme-color" content="#0a0a0a" />
 <title>Commissions</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -321,10 +324,40 @@ body {
   .field-row { grid-template-columns: 1fr; }
   .list-row, .list-header { grid-template-columns: 1fr 1fr; }
 }
+.priority-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 5px; vertical-align: middle; }
+.priority-dot.urgent { background: var(--danger); }
+.priority-dot.normal { background: var(--text-faint); }
+.priority-dot.faible { background: var(--text-faint); opacity: 0.4; }
+
+.contact-link { color: var(--text-muted); text-decoration: none; margin-left: 6px; font-size: 12px; }
+.contact-link:hover { color: var(--text); text-decoration: underline; }
+
+.template-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.template-row:last-child { border-bottom: none; }
+.template-name { font-weight: 600; font-size: 13px; }
+.template-sub { font-size: 11px; color: var(--text-muted); }
+.template-actions { display: flex; gap: 8px; }
+
+.share-view { max-width: 480px; margin: 60px auto; padding: 0 20px; }
+.share-card { border: 1px solid var(--border); border-radius: var(--radius); padding: 24px; background: var(--surface); }
+.share-card h1 { font-family: var(--font-head); font-size: 20px; margin: 0 0 4px; }
+.share-card .status-pill { margin-bottom: 16px; }
+.share-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
+.share-footer { margin-top: 20px; font-size: 12px; color: var(--text-muted); text-align: center; }
+
+.shortcut-hint { font-size: 11px; color: var(--text-faint); margin-left: 4px; }
 </style>
 </head>
 <body>
 
+  <div id="share-root" class="hidden">
+    <div class="share-view">
+      <div class="share-card" id="share-card"></div>
+      <p class="share-footer">Genere avec l'outil de suivi de commissions de JB Studio</p>
+    </div>
+  </div>
+
+  <div id="app-root">
   <header class="topbar">
     <div style="display:flex; align-items:center;">
       <span class="logo">Commissions</span>
@@ -332,6 +365,7 @@ body {
     </div>
     <div class="topbar-right">
       <button id="theme-toggle" class="btn btn-ghost">Mode sombre</button>
+      <button id="templates-btn" class="btn btn-ghost">Modeles</button>
       <button id="notes-btn" class="btn btn-ghost">Notes</button>
       <button id="clients-btn" class="btn btn-ghost">Clients</button>
       <button id="data-btn" class="btn btn-ghost">Sauvegarde</button>
@@ -488,16 +522,32 @@ body {
           <label for="f-deposit">Acompte verse</label>
           <input type="text" id="f-deposit" placeholder="ex: 200" />
         </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="f-deadline">Deadline</label>
+            <input type="date" id="f-deadline" />
+          </div>
+          <div class="field">
+            <label for="f-priority">Priorite</label>
+            <select id="f-priority">
+              <option value="normal">Normale</option>
+              <option value="urgent">Urgente</option>
+              <option value="faible">Faible</option>
+            </select>
+          </div>
+        </div>
         <div class="field">
-          <label for="f-deadline">Deadline</label>
-          <input type="date" id="f-deadline" />
+          <label for="f-contact">Contact client (lien Discord/Roblox, optionnel)</label>
+          <input type="text" id="f-contact" placeholder="ex: https://discord.com/users/..." />
         </div>
       </div>
       <div class="modal-footer">
         <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
           <button id="delete-btn" class="btn btn-ghost hidden">Supprimer</button>
+          <button id="duplicate-btn" class="btn btn-ghost hidden">Dupliquer</button>
           <button id="copy-recap-btn" class="btn btn-ghost hidden">Copier le recap</button>
           <button id="print-devis-btn" class="btn btn-ghost hidden">Generer un devis</button>
+          <button id="share-btn" class="btn btn-ghost hidden">Partager</button>
           <span class="copy-feedback" id="copy-feedback"></span>
         </div>
         <div class="modal-footer-right">
@@ -553,6 +603,11 @@ body {
           <span style="font-size:13px; color:var(--text-secondary);" id="rate-display"></span>
           <button class="goal-edit" id="rate-edit-btn">Modifier le taux</button>
         </div>
+        <p class="data-section-title">Notification Discord</p>
+        <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+          <span style="font-size:13px; color:var(--text-secondary);" id="webhook-display"></span>
+          <button class="goal-edit" id="webhook-edit-btn">Configurer le webhook</button>
+        </div>
         <p class="data-section-title">Export / Import</p>
         <div style="display:flex; gap:10px; flex-wrap:wrap;">
           <button id="export-btn" class="btn btn-ghost">Exporter en CSV</button>
@@ -565,7 +620,55 @@ body {
     </div>
   </div>
 
+  <div id="templates-overlay" class="modal-overlay hidden">
+    <div class="modal modal-wide">
+      <div class="modal-header">
+        <h2>Modeles de commande</h2>
+        <button id="templates-close" class="icon-btn" aria-label="Fermer">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div id="templates-list"></div>
+        <p class="data-section-title">Nouveau modele</p>
+        <div class="field-row">
+          <div class="field">
+            <label for="tpl-name">Nom du modele</label>
+            <input type="text" id="tpl-name" placeholder="ex: Map complete" />
+          </div>
+          <div class="field">
+            <label for="tpl-type">Type</label>
+            <select id="tpl-type">
+              <option value="Build">Build / map</option>
+              <option value="Script">Script</option>
+              <option value="UI">UI / GFX</option>
+              <option value="Systeme">Systeme complet</option>
+              <option value="Autre">Autre</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label for="tpl-desc">Description type</label>
+          <textarea id="tpl-desc" placeholder="Description pre-remplie"></textarea>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label for="tpl-price">Montant habituel</label>
+            <input type="text" id="tpl-price" placeholder="ex: 500" />
+          </div>
+          <div class="field">
+            <label for="tpl-currency">Devise</label>
+            <select id="tpl-currency">
+              <option value="RBX">Robux</option>
+              <option value="EUR">Euros</option>
+            </select>
+          </div>
+        </div>
+        <button id="tpl-save-btn" class="btn btn-primary">Enregistrer ce modele</button>
+      </div>
+    </div>
+  </div>
+
   <canvas id="confetti-canvas"></canvas>
+  </div>
 
 <script>
 const STATUSES = [
@@ -579,6 +682,9 @@ const THEME_KEY = 'commissions_theme';
 const GOAL_KEY = 'commissions_goal';
 const VIEW_KEY = 'commissions_view';
 const RATE_KEY = 'commissions_rate';
+const TEMPLATES_KEY = 'commissions_templates';
+const WEBHOOK_KEY = 'commissions_webhook';
+const DEADLINE_SUGGEST = { Build: 14, Script: 7, UI: 5, Systeme: 21, Autre: 7 };
 
 function getRate() {
   return parseFloat(localStorage.getItem(RATE_KEY) || '280');
@@ -595,6 +701,16 @@ function amountInRBX(o) {
 
 function depositInRBX(o) {
   return toRBX(extractNumber(o.deposit), o.currency || 'RBX');
+}
+
+function notifyDiscord(message) {
+  const url = localStorage.getItem(WEBHOOK_KEY);
+  if (!url) return;
+  fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ content: message })
+  }).catch(() => { /* notification silencieuse, on ne bloque jamais l'appli */ });
 }
 
 let orders = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
@@ -870,7 +986,11 @@ function renderBoard() {
       card.draggable = true;
       card.innerHTML = `
         <div class="card-top">
-          <span class="card-client">${escapeHtml(o.client)}</span>
+          <span class="card-client">
+            ${o.priority && o.priority !== 'normal' ? `<span class="priority-dot ${o.priority}" title="Priorite ${o.priority}"></span>` : ''}
+            ${escapeHtml(o.client)}
+            ${o.contact ? `<a class="contact-link" href="${escapeHtml(o.contact)}" target="_blank" rel="noopener" onclick="event.stopPropagation();">contact</a>` : ''}
+          </span>
           <button class="card-del" data-del="${o.id}" aria-label="Supprimer">&times;</button>
         </div>
         <div class="card-tags">
@@ -961,6 +1081,7 @@ function setOrderStatus(order, newKey) {
   if (newKey === 'livre' && !order.paidAt) {
     order.paidAt = new Date().toISOString();
     fireConfetti();
+    notifyDiscord(`Commande livree : ${order.client} (${order.type}) - ${order.price || '?'} ${currencyLabelOf(order)}`);
   }
   save();
   render();
@@ -1574,6 +1695,7 @@ const dataOverlay = document.getElementById('data-overlay');
 document.getElementById('data-btn').addEventListener('click', () => {
   renderBackups();
   renderRate();
+  renderWebhook();
   dataOverlay.classList.remove('hidden');
 });
 document.getElementById('data-close').addEventListener('click', () => dataOverlay.classList.add('hidden'));
@@ -1591,6 +1713,23 @@ document.getElementById('rate-edit-btn').addEventListener('click', () => {
     renderRate();
     render();
   }
+});
+
+function renderWebhook() {
+  const url = localStorage.getItem(WEBHOOK_KEY);
+  document.getElementById('webhook-display').textContent = url ? 'Webhook configure' : 'Aucun webhook configure';
+}
+
+document.getElementById('webhook-edit-btn').addEventListener('click', () => {
+  const current = localStorage.getItem(WEBHOOK_KEY) || '';
+  const input = window.prompt("Colle l'URL de ton webhook Discord (laisse vide pour desactiver) :", current);
+  if (input === null) return;
+  if (input.trim()) {
+    localStorage.setItem(WEBHOOK_KEY, input.trim());
+  } else {
+    localStorage.removeItem(WEBHOOK_KEY);
+  }
+  renderWebhook();
 });
 
 function renderBackups() {
@@ -1682,26 +1821,42 @@ const copyRecapBtn = document.getElementById('copy-recap-btn');
 const copyFeedback = document.getElementById('copy-feedback');
 
 const printDevisBtn = document.getElementById('print-devis-btn');
+const duplicateBtn = document.getElementById('duplicate-btn');
+const shareBtn = document.getElementById('share-btn');
 
 document.getElementById('new-order-btn').addEventListener('click', () => openNewModal());
 document.getElementById('modal-close').addEventListener('click', closeModal);
 document.getElementById('cancel-btn').addEventListener('click', closeModal);
 
-function openNewModal() {
+document.getElementById('f-type').addEventListener('change', () => {
+  const deadlineInput = document.getElementById('f-deadline');
+  if (deadlineInput.value) return;
+  const type = document.getElementById('f-type').value;
+  const days = DEADLINE_SUGGEST[type] || 7;
+  const d = new Date();
+  d.setDate(d.getDate() + days);
+  deadlineInput.value = d.toISOString().slice(0, 10);
+});
+
+function openNewModal(prefill) {
   editingId = null;
   modalTitle.textContent = 'Nouvelle commande';
   saveBtn.textContent = 'Ajouter';
   deleteBtn.classList.add('hidden');
   copyRecapBtn.classList.add('hidden');
   printDevisBtn.classList.add('hidden');
+  duplicateBtn.classList.add('hidden');
+  shareBtn.classList.add('hidden');
   copyFeedback.textContent = '';
   document.getElementById('f-client').value = '';
-  document.getElementById('f-type').value = 'Build';
-  document.getElementById('f-desc').value = '';
-  document.getElementById('f-price').value = '';
-  document.getElementById('f-currency').value = 'RBX';
+  document.getElementById('f-type').value = (prefill && prefill.type) || 'Build';
+  document.getElementById('f-desc').value = (prefill && prefill.description) || '';
+  document.getElementById('f-price').value = (prefill && prefill.price) || '';
+  document.getElementById('f-currency').value = (prefill && prefill.currency) || 'RBX';
   document.getElementById('f-deposit').value = '';
   document.getElementById('f-deadline').value = '';
+  document.getElementById('f-priority').value = 'normal';
+  document.getElementById('f-contact').value = '';
   modalOverlay.classList.remove('hidden');
 }
 
@@ -1714,6 +1869,8 @@ function openEditModal(id) {
   deleteBtn.classList.remove('hidden');
   copyRecapBtn.classList.remove('hidden');
   printDevisBtn.classList.remove('hidden');
+  duplicateBtn.classList.remove('hidden');
+  shareBtn.classList.remove('hidden');
   copyFeedback.textContent = '';
   document.getElementById('f-client').value = o.client;
   document.getElementById('f-type').value = o.type;
@@ -1722,6 +1879,8 @@ function openEditModal(id) {
   document.getElementById('f-currency').value = o.currency || 'RBX';
   document.getElementById('f-deposit').value = o.deposit || '';
   document.getElementById('f-deadline').value = o.deadline || '';
+  document.getElementById('f-priority').value = o.priority || 'normal';
+  document.getElementById('f-contact').value = o.contact || '';
   modalOverlay.classList.remove('hidden');
 }
 
@@ -1767,6 +1926,40 @@ printDevisBtn.addEventListener('click', () => {
   window.print();
 });
 
+duplicateBtn.addEventListener('click', () => {
+  if (!editingId) return;
+  const o = orders.find(x => x.id === editingId);
+  if (!o) return;
+  const copy = Object.assign({}, o, {
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
+    status: 'attente',
+    createdAt: new Date().toISOString(),
+    paidAt: undefined
+  });
+  orders.push(copy);
+  save();
+  closeModal();
+  render();
+});
+
+shareBtn.addEventListener('click', () => {
+  if (!editingId) return;
+  const o = orders.find(x => x.id === editingId);
+  if (!o) return;
+  const shareData = {
+    client: o.client, type: o.type, description: o.description,
+    deadline: o.deadline || '', status: o.status
+  };
+  const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(shareData))));
+  const url = `${location.origin}${location.pathname}?share=${encoded}`;
+  navigator.clipboard.writeText(url).then(() => {
+    copyFeedback.textContent = 'Lien copie !';
+    setTimeout(() => { copyFeedback.textContent = ''; }, 2500);
+  }).catch(() => {
+    window.prompt('Copie ce lien :', url);
+  });
+});
+
 function closeModal() {
   modalOverlay.classList.add('hidden');
   editingId = null;
@@ -1788,27 +1981,145 @@ saveBtn.addEventListener('click', () => {
   const currency = document.getElementById('f-currency').value;
   const deposit = document.getElementById('f-deposit').value.trim();
   const deadline = document.getElementById('f-deadline').value;
+  const priority = document.getElementById('f-priority').value;
+  const contact = document.getElementById('f-contact').value.trim();
   if (!client || !description) return;
 
   if (editingId) {
     const o = orders.find(x => x.id === editingId);
-    Object.assign(o, { client, type, description, price, currency, deposit, deadline });
+    Object.assign(o, { client, type, description, price, currency, deposit, deadline, priority, contact });
   } else {
     orders.push({
       id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
-      client, type, description, price, currency, deposit, deadline,
+      client, type, description, price, currency, deposit, deadline, priority, contact,
       status: 'attente',
       createdAt: new Date().toISOString()
     });
+    notifyDiscord(`Nouvelle commande : ${client} (${type})${price ? ' - ' + price + ' ' + (currency === 'EUR' ? '\u20ac' : 'RBX') : ''}`);
   }
   save();
   closeModal();
   render();
 });
 
+// ---------- Modeles de commande ----------
+const templatesOverlay = document.getElementById('templates-overlay');
+document.getElementById('templates-btn').addEventListener('click', () => {
+  renderTemplates();
+  templatesOverlay.classList.remove('hidden');
+});
+document.getElementById('templates-close').addEventListener('click', () => templatesOverlay.classList.add('hidden'));
+
+function getTemplates() {
+  return JSON.parse(localStorage.getItem(TEMPLATES_KEY) || '[]');
+}
+
+function renderTemplates() {
+  const templates = getTemplates();
+  const container = document.getElementById('templates-list');
+  if (templates.length === 0) {
+    container.innerHTML = '<p class="chart-empty" style="padding:0;">Pas encore de modele enregistre</p>';
+  } else {
+    container.innerHTML = templates.map((t, idx) => `
+      <div class="template-row">
+        <div>
+          <div class="template-name">${escapeHtml(t.name)}</div>
+          <div class="template-sub">${escapeHtml(t.type)} - ${t.price ? escapeHtml(t.price) + ' ' + (t.currency === 'EUR' ? '\u20ac' : 'RBX') : 'sans montant'}</div>
+        </div>
+        <div class="template-actions">
+          <button class="btn btn-ghost" data-use-tpl="${idx}">Utiliser</button>
+          <button class="btn btn-ghost" data-del-tpl="${idx}">Supprimer</button>
+        </div>
+      </div>
+    `).join('');
+    container.querySelectorAll('[data-use-tpl]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const t = templates[parseInt(btn.dataset.useTpl, 10)];
+        templatesOverlay.classList.add('hidden');
+        openNewModal(t);
+      });
+    });
+    container.querySelectorAll('[data-del-tpl]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const idx = parseInt(btn.dataset.delTpl, 10);
+        templates.splice(idx, 1);
+        localStorage.setItem(TEMPLATES_KEY, JSON.stringify(templates));
+        renderTemplates();
+      });
+    });
+  }
+}
+
+document.getElementById('tpl-save-btn').addEventListener('click', () => {
+  const name = document.getElementById('tpl-name').value.trim();
+  const type = document.getElementById('tpl-type').value;
+  const description = document.getElementById('tpl-desc').value.trim();
+  const price = document.getElementById('tpl-price').value.trim();
+  const currency = document.getElementById('tpl-currency').value;
+  if (!name) return;
+  const templates = getTemplates();
+  templates.push({ name, type, description, price, currency });
+  localStorage.setItem(TEMPLATES_KEY, JSON.stringify(templates));
+  document.getElementById('tpl-name').value = '';
+  document.getElementById('tpl-desc').value = '';
+  document.getElementById('tpl-price').value = '';
+  renderTemplates();
+});
+
+// ---------- Raccourcis clavier ----------
+document.addEventListener('keydown', (e) => {
+  const tag = (e.target.tagName || '').toLowerCase();
+  const typing = tag === 'input' || tag === 'textarea' || tag === 'select' || e.target.isContentEditable;
+
+  if (e.key === 'Escape') {
+    [modalOverlay, clientsOverlay, notesOverlay, dataOverlay, templatesOverlay].forEach(m => m.classList.add('hidden'));
+    return;
+  }
+  if (typing) return;
+  if (e.key === 'n' || e.key === 'N') {
+    e.preventDefault();
+    openNewModal();
+  } else if (e.key === '/') {
+    e.preventDefault();
+    document.getElementById('search-input').focus();
+  }
+});
+
+// ---------- Vue partagee en lecture seule ----------
+function checkShareView() {
+  const params = new URLSearchParams(location.search);
+  const shared = params.get('share');
+  if (!shared) return false;
+  try {
+    const data = JSON.parse(decodeURIComponent(escape(atob(shared))));
+    document.getElementById('app-root').classList.add('hidden');
+    const root = document.getElementById('share-root');
+    root.classList.remove('hidden');
+    document.getElementById('share-card').innerHTML = `
+      <h1>${escapeHtml(data.client)}</h1>
+      <span class="status-pill">${escapeHtml(statusLabelOf(data.status))}</span>
+      <div class="share-row"><span>Type</span><span>${escapeHtml(data.type)}</span></div>
+      <div class="share-row"><span>Description</span><span>${escapeHtml(data.description)}</span></div>
+      <div class="share-row"><span>Deadline</span><span>${data.deadline ? formatDate(data.deadline) : '-'}</span></div>
+    `;
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+// ---------- Service worker (PWA) ----------
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(() => { /* pas grave si ca echoue */ });
+  });
+}
+
 // ---------- Init ----------
 applyTheme();
-setView(viewMode);
+if (!checkShareView()) {
+  setView(viewMode);
+}
 </script>
 </body>
 </html>
