@@ -200,6 +200,36 @@ body {
 .client-total { font-size: 13px; font-weight: 600; text-align: right; }
 .client-total-sub { font-size: 11px; color: var(--text-muted); text-align: right; }
 
+.goal-compare { font-size: 12px; white-space: nowrap; }
+.goal-compare.up { color: #2f8a4e; }
+.goal-compare.down { color: var(--danger); }
+
+.avg-card { border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 20px; margin-bottom: 32px; background: var(--surface); }
+.avg-title { font-size: 12px; color: var(--text-muted); margin: 0 0 12px; }
+.avg-list { display: flex; gap: 20px; flex-wrap: wrap; }
+.avg-item { display: flex; flex-direction: column; gap: 2px; }
+.avg-item-type { font-size: 11px; color: var(--text-muted); }
+.avg-item-value { font-family: var(--font-head); font-size: 16px; font-weight: 600; }
+
+#notes-textarea {
+  width: 100%; min-height: 220px; border: 1px solid var(--border); border-radius: 8px;
+  padding: 12px; font-family: var(--font-body); font-size: 14px; background: var(--surface); color: var(--text); resize: vertical;
+}
+#notes-textarea:focus { outline: none; border-color: var(--text); }
+.notes-saved { font-size: 11px; color: var(--text-muted); margin-top: 8px; }
+
+.backup-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.backup-row:last-child { border-bottom: none; }
+.backup-date { font-size: 13px; }
+.backup-sub { font-size: 11px; color: var(--text-muted); }
+.data-section-title { font-size: 12px; color: var(--text-muted); margin: 18px 0 8px; text-transform: uppercase; letter-spacing: 0.03em; }
+.data-section-title:first-child { margin-top: 0; }
+.file-input-label {
+  display: inline-block; font-size: 13px; font-weight: 500; padding: 10px 16px; border-radius: 7px;
+  border: 1px solid var(--border); cursor: pointer; color: var(--text-secondary);
+}
+.file-input-label:hover { background: var(--surface-alt); }
+
 @media (max-width: 900px) {
   .stats { grid-template-columns: repeat(2, 1fr); }
   .charts { grid-template-columns: 1fr; }
@@ -224,8 +254,9 @@ body {
     </div>
     <div class="topbar-right">
       <button id="theme-toggle" class="btn btn-ghost">Mode sombre</button>
+      <button id="notes-btn" class="btn btn-ghost">Notes</button>
       <button id="clients-btn" class="btn btn-ghost">Clients</button>
-      <button id="export-btn" class="btn btn-ghost">Exporter CSV</button>
+      <button id="data-btn" class="btn btn-ghost">Sauvegarde</button>
       <button id="new-order-btn" class="btn btn-primary">Nouvelle commande</button>
     </div>
   </header>
@@ -254,6 +285,7 @@ body {
       <span class="goal-label">Objectif du mois</span>
       <div class="goal-bar-track"><div class="goal-bar-fill" id="goal-fill" style="width:0%;"></div></div>
       <span class="goal-value" id="goal-value">0 / 0 R$</span>
+      <span class="goal-compare" id="goal-compare"></span>
       <button class="goal-edit" id="goal-edit-btn">Modifier</button>
     </div>
 
@@ -273,6 +305,11 @@ body {
       </div>
     </section>
 
+    <div class="avg-card">
+      <p class="avg-title">Delai moyen de livraison</p>
+      <div class="avg-list" id="avg-list"></div>
+    </div>
+
     <div class="toolbar">
       <input type="text" id="search-input" placeholder="Rechercher un client ou une description..." />
       <select id="filter-type">
@@ -282,6 +319,12 @@ body {
         <option value="UI">UI / GFX</option>
         <option value="Systeme">Systeme complet</option>
         <option value="Autre">Autre</option>
+      </select>
+      <select id="sort-select">
+        <option value="deadline">Trier : deadline</option>
+        <option value="price-desc">Trier : prix decroissant</option>
+        <option value="price-asc">Trier : prix croissant</option>
+        <option value="client-asc">Trier : client A-Z</option>
       </select>
       <div class="seg">
         <button id="view-kanban" class="active">Kanban</button>
@@ -364,6 +407,38 @@ body {
     </div>
   </div>
 
+  <div id="notes-overlay" class="modal-overlay hidden">
+    <div class="modal modal-wide">
+      <div class="modal-header">
+        <h2>Notes</h2>
+        <button id="notes-close" class="icon-btn" aria-label="Fermer">&times;</button>
+      </div>
+      <div class="modal-body">
+        <textarea id="notes-textarea" placeholder="Idees, rappels, choses a ne pas oublier..."></textarea>
+        <p class="notes-saved" id="notes-saved"></p>
+      </div>
+    </div>
+  </div>
+
+  <div id="data-overlay" class="modal-overlay hidden">
+    <div class="modal modal-wide">
+      <div class="modal-header">
+        <h2>Sauvegarde des donnees</h2>
+        <button id="data-close" class="icon-btn" aria-label="Fermer">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="data-section-title">Export / Import</p>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <button id="export-btn" class="btn btn-ghost">Exporter en CSV</button>
+          <label for="import-file" class="file-input-label">Importer un CSV</label>
+          <input type="file" id="import-file" accept=".csv" class="hidden" />
+        </div>
+        <p class="data-section-title">Sauvegardes automatiques</p>
+        <div id="backups-list"></div>
+      </div>
+    </div>
+  </div>
+
   <canvas id="confetti-canvas"></canvas>
 
 <script>
@@ -383,8 +458,22 @@ let editingId = null;
 let viewMode = localStorage.getItem(VIEW_KEY) || 'kanban';
 let justMarkedPaidId = null;
 
+const BACKUP_KEY = 'commissions_backups';
+const NOTES_KEY = 'commissions_notes';
+const SORT_KEY = 'commissions_sort';
+
 function save() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(orders));
+  pushBackup();
+}
+
+function pushBackup() {
+  try {
+    const backups = JSON.parse(localStorage.getItem(BACKUP_KEY) || '[]');
+    backups.unshift({ timestamp: new Date().toISOString(), data: orders });
+    while (backups.length > 5) backups.pop();
+    localStorage.setItem(BACKUP_KEY, JSON.stringify(backups));
+  } catch (e) { /* stockage plein ou indisponible, on ignore */ }
 }
 
 function extractNumber(str) {
@@ -431,6 +520,18 @@ function getFilteredOrders() {
     }
     return true;
   });
+}
+
+function sortComparator() {
+  const mode = document.getElementById('sort-select').value;
+  if (mode === 'price-desc') return (a, b) => extractNumber(b.price) - extractNumber(a.price);
+  if (mode === 'price-asc') return (a, b) => extractNumber(a.price) - extractNumber(b.price);
+  if (mode === 'client-asc') return (a, b) => a.client.localeCompare(b.client);
+  return (a, b) => {
+    if (!a.deadline) return 1;
+    if (!b.deadline) return -1;
+    return a.deadline.localeCompare(b.deadline);
+  };
 }
 
 // ---------- Theme ----------
@@ -496,11 +597,7 @@ function renderBoard() {
   STATUSES.forEach((st) => {
     const items = filtered
       .filter(o => o.status === st.key)
-      .sort((a, b) => {
-        if (!a.deadline) return 1;
-        if (!b.deadline) return -1;
-        return a.deadline.localeCompare(b.deadline);
-      });
+      .sort(sortComparator());
 
     const col = document.createElement('div');
     col.className = 'column';
@@ -563,19 +660,19 @@ function renderBoard() {
   attachRowEvents();
   renderCharts();
   renderGoal();
+  renderAvgDelivery();
   renderStreak();
   renderToday();
   updateFaviconAndTitle();
 }
 
 function renderList() {
+  const comparator = sortComparator();
   const filtered = getFilteredOrders().sort((a, b) => {
     const sa = STATUSES.findIndex(s => s.key === a.status);
     const sb = STATUSES.findIndex(s => s.key === b.status);
     if (sa !== sb) return sa - sb;
-    if (!a.deadline) return 1;
-    if (!b.deadline) return -1;
-    return a.deadline.localeCompare(b.deadline);
+    return comparator(a, b);
   });
   computeStats(filtered);
   const container = document.getElementById('list-view');
@@ -604,6 +701,7 @@ function renderList() {
   attachRowEvents();
   renderCharts();
   renderGoal();
+  renderAvgDelivery();
   renderStreak();
   renderToday();
   updateFaviconAndTitle();
@@ -857,6 +955,33 @@ function updateFaviconAndTitle() {
   document.getElementById('favicon').href = canvas.toDataURL('image/png');
 }
 
+// ---------- Delai moyen de livraison ----------
+function renderAvgDelivery() {
+  const container = document.getElementById('avg-list');
+  const byType = {};
+  orders.forEach(o => {
+    if (o.status !== 'livre' || !o.paidAt || !o.createdAt) return;
+    const days = (new Date(o.paidAt) - new Date(o.createdAt)) / 86400000;
+    if (days < 0) return;
+    if (!byType[o.type]) byType[o.type] = [];
+    byType[o.type].push(days);
+  });
+  const types = Object.keys(byType);
+  if (types.length === 0) {
+    container.innerHTML = '<p class="chart-empty" style="padding:0;">Pas encore assez de commandes livrees</p>';
+    return;
+  }
+  container.innerHTML = '';
+  types.forEach(type => {
+    const values = byType[type];
+    const avg = values.reduce((s, v) => s + v, 0) / values.length;
+    const item = document.createElement('div');
+    item.className = 'avg-item';
+    item.innerHTML = `<span class="avg-item-type">${escapeHtml(type)}</span><span class="avg-item-value">${avg.toFixed(1)} j</span>`;
+    container.appendChild(item);
+  });
+}
+
 // ---------- Objectif mensuel ----------
 function renderGoal() {
   const goal = parseFloat(localStorage.getItem(GOAL_KEY) || '0');
@@ -873,6 +998,27 @@ function renderGoal() {
   const pct = goal > 0 ? Math.min(100, (paidThisMonth / goal) * 100) : 0;
   document.getElementById('goal-fill').style.width = pct + '%';
   document.getElementById('goal-value').textContent = `${paidThisMonth.toLocaleString('fr-FR')} / ${goal.toLocaleString('fr-FR')} R$`;
+
+  const lastMonthDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  const lastMonthKey = `${lastMonthDate.getFullYear()}-${lastMonthDate.getMonth()}`;
+  const paidLastMonth = orders
+    .filter(o => o.status === 'livre' && o.paidAt)
+    .filter(o => {
+      const d = new Date(o.paidAt);
+      return `${d.getFullYear()}-${d.getMonth()}` === lastMonthKey;
+    })
+    .reduce((sum, o) => sum + extractNumber(o.price), 0);
+
+  const compareEl = document.getElementById('goal-compare');
+  if (paidLastMonth === 0) {
+    compareEl.textContent = '';
+    compareEl.className = 'goal-compare';
+  } else {
+    const change = ((paidThisMonth - paidLastMonth) / paidLastMonth) * 100;
+    const sign = change >= 0 ? '+' : '';
+    compareEl.textContent = `${sign}${change.toFixed(0)}% vs mois dernier`;
+    compareEl.className = 'goal-compare ' + (change >= 0 ? 'up' : 'down');
+  }
 }
 
 document.getElementById('goal-edit-btn').addEventListener('click', () => {
@@ -886,9 +1032,14 @@ document.getElementById('goal-edit-btn').addEventListener('click', () => {
   }
 });
 
-// ---------- Recherche / filtres ----------
+// ---------- Recherche / filtres / tri ----------
 document.getElementById('search-input').addEventListener('input', render);
 document.getElementById('filter-type').addEventListener('change', render);
+document.getElementById('sort-select').value = localStorage.getItem(SORT_KEY) || 'deadline';
+document.getElementById('sort-select').addEventListener('change', (e) => {
+  localStorage.setItem(SORT_KEY, e.target.value);
+  render();
+});
 
 // ---------- Export CSV ----------
 document.getElementById('export-btn').addEventListener('click', () => {
@@ -907,6 +1058,123 @@ document.getElementById('export-btn').addEventListener('click', () => {
   a.click();
   URL.revokeObjectURL(url);
 });
+
+// ---------- Import CSV ----------
+function parseCsvLine(line) {
+  const cells = [];
+  let cur = '';
+  let inQuotes = false;
+  for (let i = 0; i < line.length; i++) {
+    const c = line[i];
+    if (inQuotes) {
+      if (c === '"' && line[i + 1] === '"') { cur += '"'; i++; }
+      else if (c === '"') { inQuotes = false; }
+      else { cur += c; }
+    } else {
+      if (c === '"') inQuotes = true;
+      else if (c === ',') { cells.push(cur); cur = ''; }
+      else cur += c;
+    }
+  }
+  cells.push(cur);
+  return cells;
+}
+
+const statusKeyByLabel = Object.fromEntries(STATUSES.map(s => [s.label, s.key]));
+
+document.getElementById('import-file').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const lines = String(reader.result).split(/\r?\n/).filter(l => l.trim().length > 0);
+      if (lines.length < 2) { alert('Fichier CSV vide ou invalide.'); return; }
+      const rows = lines.slice(1).map(parseCsvLine);
+      const imported = rows.map(r => ({
+        id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
+        client: r[0] || 'Client',
+        type: r[1] || 'Autre',
+        description: r[2] || '',
+        price: r[3] || '',
+        deposit: r[4] || '',
+        deadline: r[5] || '',
+        status: statusKeyByLabel[r[6]] || 'attente',
+        createdAt: new Date().toISOString()
+      }));
+      const confirmMsg = `Ajouter ${imported.length} commande(s) importee(s) a tes commandes actuelles ?`;
+      if (window.confirm(confirmMsg)) {
+        orders = orders.concat(imported);
+        save();
+        render();
+        alert('Import termine.');
+      }
+    } catch (err) {
+      alert("Erreur lors de la lecture du fichier CSV.");
+    }
+    e.target.value = '';
+  };
+  reader.readAsText(file, 'utf-8');
+});
+
+// ---------- Notes libres ----------
+const notesOverlay = document.getElementById('notes-overlay');
+const notesTextarea = document.getElementById('notes-textarea');
+document.getElementById('notes-btn').addEventListener('click', () => {
+  notesTextarea.value = localStorage.getItem(NOTES_KEY) || '';
+  document.getElementById('notes-saved').textContent = '';
+  notesOverlay.classList.remove('hidden');
+});
+document.getElementById('notes-close').addEventListener('click', () => notesOverlay.classList.add('hidden'));
+let notesTimeout = null;
+notesTextarea.addEventListener('input', () => {
+  clearTimeout(notesTimeout);
+  notesTimeout = setTimeout(() => {
+    localStorage.setItem(NOTES_KEY, notesTextarea.value);
+    document.getElementById('notes-saved').textContent = 'Enregistre';
+  }, 500);
+});
+
+// ---------- Sauvegarde / donnees ----------
+const dataOverlay = document.getElementById('data-overlay');
+document.getElementById('data-btn').addEventListener('click', () => {
+  renderBackups();
+  dataOverlay.classList.remove('hidden');
+});
+document.getElementById('data-close').addEventListener('click', () => dataOverlay.classList.add('hidden'));
+
+function renderBackups() {
+  const backups = JSON.parse(localStorage.getItem(BACKUP_KEY) || '[]');
+  const container = document.getElementById('backups-list');
+  container.innerHTML = '';
+  if (backups.length === 0) {
+    container.innerHTML = '<p class="chart-empty" style="padding:0;">Pas encore de sauvegarde automatique</p>';
+    return;
+  }
+  backups.forEach((b, idx) => {
+    const d = new Date(b.timestamp);
+    const row = document.createElement('div');
+    row.className = 'backup-row';
+    row.innerHTML = `
+      <div>
+        <div class="backup-date">${d.toLocaleDateString('fr-FR')} a ${d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</div>
+        <div class="backup-sub">${b.data.length} commande${b.data.length > 1 ? 's' : ''}</div>
+      </div>
+      <button class="btn btn-ghost" data-restore="${idx}">Restaurer</button>
+    `;
+    container.appendChild(row);
+  });
+  container.querySelectorAll('[data-restore]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = parseInt(btn.dataset.restore, 10);
+      if (!window.confirm('Remplacer tes commandes actuelles par cette sauvegarde ?')) return;
+      orders = backups[idx].data;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(orders));
+      render();
+      dataOverlay.classList.add('hidden');
+    });
+  });
+}
 
 // ---------- Historique clients ----------
 const clientsOverlay = document.getElementById('clients-overlay');

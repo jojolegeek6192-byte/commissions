@@ -19,8 +19,11 @@ met a jour tout seul, sans rien reconfigurer.
 ## Fonctionnalites
 
 - Kanban en 4 colonnes ou vue liste (pratique sur mobile), au choix
+- Tri des commandes par deadline, prix ou client
 - Graphique des revenus encaisses par mois
 - Graphique de repartition des commandes par type
+- Delai moyen de livraison par type de commande
+- Comparaison du revenu du mois vs le mois precedent (%)
 - Recherche par client / description et filtre par type
 - Alerte visuelle si une deadline est depassee ou arrive dans moins de 3 jours
 - Champ acompte : suit le reste a payer par commande
@@ -32,5 +35,7 @@ met a jour tout seul, sans rien reconfigurer.
 - Section "A surveiller cette semaine" avec les deadlines proches
 - Titre d'onglet et icone qui indiquent le nombre de commandes en retard
 - Bouton "Copier le recap" dans une commande pour coller un resume au client
+- Notes libres (bouton "Notes") pour tes rappels et idees
+- Sauvegarde automatique des 5 dernieres versions de tes donnees, restaurable en un clic
+- Export et import CSV (bouton "Sauvegarde")
 - Clique sur une commande pour la modifier ou la supprimer
-- Export CSV de toutes les commandes
