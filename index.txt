@@ -30,6 +30,8 @@
   --warning-bg: #f6e9d3;
   --font-head: 'Space Grotesk', sans-serif;
   --font-body: 'Inter', sans-serif;
+  --accent: #0a0a0a;
+  --accent-contrast: #ffffff;
 }
 [data-theme="dark"] {
   --bg: #0a0a0a;
@@ -45,6 +47,8 @@
   --danger-bg: #3a1f1f;
   --warning: #d4a24c;
   --warning-bg: #3a2f1a;
+  --accent: #f5f5f5;
+  --accent-contrast: #0a0a0a;
 }
 * { box-sizing: border-box; }
 body {
@@ -65,7 +69,7 @@ body {
   border: 1px solid transparent;
   cursor: pointer;
 }
-.btn-primary { background: var(--text); color: var(--bg); }
+.btn-primary { background: var(--accent); color: var(--accent-contrast); }
 .btn-primary:hover { opacity: 0.85; }
 .btn-ghost { background: transparent; color: var(--text-secondary); border-color: var(--border); }
 .btn-ghost:hover { background: var(--surface-alt); }
@@ -147,7 +151,8 @@ body {
 .card-del { background: none; border: none; color: var(--text-faint); cursor: pointer; font-size: 16px; line-height: 1; padding: 0; }
 .card-del:hover { color: var(--text); }
 .card-tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
-.card-tag { display: inline-block; font-size: 11px; font-weight: 500; padding: 3px 9px; border-radius: 20px; background: var(--text); color: var(--bg); }
+.card-tag { display: inline-block; font-size: 11px; font-weight: 500; padding: 3px 9px; border-radius: 20px; background: var(--accent); color: var(--accent-contrast); }
+.card-tag.tag-custom { background: var(--chip-bg); color: var(--text-secondary); }
 .card-tag.alert-overdue { background: var(--danger); color: var(--bg); }
 .card-tag.alert-soon { background: var(--warning-bg); color: var(--warning); }
 .card-desc { font-size: 13px; color: var(--text-secondary); line-height: 1.55; margin: 0 0 12px; }
@@ -279,8 +284,8 @@ body {
 #print-devis { display: none; }
 @media print {
   body * { visibility: hidden; }
-  #print-devis, #print-devis * { visibility: visible; }
-  #print-devis { display: block; position: absolute; top: 0; left: 0; width: 100%; padding: 40px; }
+  .print-active, .print-active * { visibility: visible; }
+  .print-active { display: block !important; position: absolute; top: 0; left: 0; width: 100%; padding: 40px; }
 }
 .devis-header { font-family: var(--font-head); font-size: 20px; font-weight: 600; margin-bottom: 4px; }
 .devis-sub { font-size: 12px; color: #666; margin-bottom: 24px; }
@@ -354,7 +359,69 @@ body {
   border-bottom: 2px solid transparent; margin-bottom: -1px;
 }
 .tab-btn:hover { color: var(--text); }
-.tab-btn.active { color: var(--text); border-bottom-color: var(--text); }
+.tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+/* Couleur d'accent */
+.accent-swatches { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
+.accent-swatch {
+  width: 26px; height: 26px; border-radius: 50%; cursor: pointer; border: 2px solid transparent;
+  display: flex; align-items: center; justify-content: center; padding: 0;
+}
+.accent-swatch.active { border-color: var(--text); }
+.accent-swatch svg { width: 12px; height: 12px; }
+
+/* Tags libres */
+.tags-input-hint { font-size: 11px; color: var(--text-faint); margin-top: 4px; }
+
+/* Historique des modifications */
+.history-toggle-row { display: flex; justify-content: flex-end; margin-bottom: 4px; }
+.history-list { display: flex; flex-direction: column; gap: 10px; max-height: 220px; overflow-y: auto; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); }
+.history-item { font-size: 12px; color: var(--text-secondary); }
+.history-item-date { font-size: 11px; color: var(--text-muted); margin-bottom: 2px; }
+
+/* Mode focus */
+.focus-overlay {
+  position: fixed; inset: 0; background: var(--bg); z-index: 200;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px; text-align: center;
+}
+.focus-close { position: absolute; top: 24px; right: 32px; }
+.focus-deadline { font-size: 13px; color: var(--text-muted); margin-bottom: 10px; }
+.focus-deadline.overdue { color: var(--danger); }
+.focus-deadline.soon { color: var(--warning); }
+.focus-client { font-family: var(--font-head); font-size: 34px; font-weight: 600; margin-bottom: 6px; }
+.focus-type { font-size: 13px; color: var(--text-muted); margin-bottom: 26px; }
+.focus-desc { font-size: 16px; color: var(--text-secondary); max-width: 620px; margin-bottom: 36px; line-height: 1.6; }
+.focus-timer { font-family: var(--font-head); font-size: 60px; font-weight: 600; margin-bottom: 28px; letter-spacing: 0.02em; font-variant-numeric: tabular-nums; }
+.focus-actions { display: flex; gap: 12px; }
+.focus-btn-open { background: none; border: 1px solid var(--border); border-radius: 6px; padding: 6px; cursor: pointer; color: var(--text-secondary); font-size: 13px; }
+.focus-btn-open:hover { background: var(--surface-alt); border-color: var(--text-faint); }
+
+/* Stats par jour de semaine */
+.weekday-card { border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 20px; margin-bottom: 24px; background: var(--surface); }
+.weekday-title { font-size: 12px; color: var(--text-muted); margin: 0 0 16px; }
+.weekday-bars { display: flex; gap: 12px; align-items: flex-end; height: 130px; }
+.weekday-bar-col { flex: 1; display: flex; flex-direction: column-reverse; align-items: center; gap: 4px; height: 100%; }
+.weekday-bar-group { flex: 1; display: flex; align-items: flex-end; gap: 3px; width: 100%; justify-content: center; }
+.weekday-bar { width: 12px; background: var(--chip-bg); border-radius: 3px 3px 0 0; min-height: 2px; }
+.weekday-bar.created { background: var(--text-faint); }
+.weekday-bar.delivered { background: var(--accent); }
+.weekday-bar-label { font-size: 10px; color: var(--text-muted); }
+.weekday-legend { display: flex; gap: 16px; margin-top: 14px; font-size: 11px; color: var(--text-muted); }
+.weekday-legend span { display: flex; align-items: center; gap: 5px; }
+.weekday-legend i { width: 9px; height: 9px; border-radius: 2px; display: inline-block; }
+.weekday-legend .lg-created { background: var(--text-faint); }
+.weekday-legend .lg-delivered { background: var(--accent); }
+
+/* Notifications */
+.toggle-row { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+.notif-status { font-size: 11px; color: var(--text-muted); }
+
+/* Bilan mensuel imprimable */
+#print-bilan { display: none; }
+.bilan-section-title { font-size: 12px; text-transform: uppercase; letter-spacing: 0.03em; color: #888; margin: 20px 0 8px; }
+.bilan-type-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #eee; font-size: 13px; }
+
+.print-active { display: none; }
 </style>
 </head>
 <body>
@@ -386,7 +453,9 @@ body {
     <div class="tabs-nav">
       <button class="tab-btn active" id="tab-btn-accueil">Accueil</button>
       <button class="tab-btn" id="tab-btn-commandes">Commandes</button>
-      <button class="tab-btn" id="tab-btn-analyse">Analyse</button>
+      <button class="tab-btn" id="tab-btn-revenus">Revenus</button>
+      <button class="tab-btn" id="tab-btn-graphiques">Graphiques</button>
+      <button class="tab-btn" id="tab-btn-historique">Historique</button>
     </div>
 
     <div class="tab-panel" id="tab-accueil">
@@ -465,22 +534,36 @@ body {
       </section>
     </div>
 
-    <div class="tab-panel hidden" id="tab-analyse">
+    <div class="tab-panel hidden" id="tab-revenus">
       <div class="records-card">
         <p class="records-title">Records perso</p>
         <div class="records-list" id="records-list"></div>
       </div>
 
-      <div class="heatmap-card">
-        <p class="heatmap-title">Activite des 12 dernieres semaines</p>
-        <div class="heatmap-grid" id="heatmap-grid"></div>
+      <div class="avg-card">
+        <p class="avg-title">Delai moyen de livraison</p>
+        <div class="avg-list" id="avg-list"></div>
       </div>
 
-      <div class="timeline-card">
-        <p class="timeline-title">Frise chronologique des commandes</p>
-        <div class="timeline-track" id="timeline-track"></div>
+      <div class="weekday-card">
+        <p class="weekday-title">Activite par jour de la semaine</p>
+        <div class="weekday-bars" id="weekday-bars"></div>
+        <div class="weekday-legend">
+          <span><i class="lg-created"></i> Commandes ajoutees</span>
+          <span><i class="lg-delivered"></i> Commandes livrees</span>
+        </div>
       </div>
 
+      <div class="records-card" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
+        <div>
+          <p class="records-title" style="margin:0 0 4px;">Bilan mensuel complet</p>
+          <p style="font-size:12px; color:var(--text-muted); margin:0;">Export PDF du mois en cours : commandes, revenus, repartition</p>
+        </div>
+        <button id="export-bilan-btn" class="btn btn-ghost">Exporter le bilan (PDF)</button>
+      </div>
+    </div>
+
+    <div class="tab-panel hidden" id="tab-graphiques">
       <section class="charts">
         <div class="chart-card">
           <p class="chart-title">Revenus encaisses par mois (en RBX)</p>
@@ -492,9 +575,21 @@ body {
         </div>
       </section>
 
-      <div class="avg-card">
-        <p class="avg-title">Delai moyen de livraison</p>
-        <div class="avg-list" id="avg-list"></div>
+      <div class="heatmap-card">
+        <p class="heatmap-title">Activite des 12 dernieres semaines</p>
+        <div class="heatmap-grid" id="heatmap-grid"></div>
+      </div>
+    </div>
+
+    <div class="tab-panel hidden" id="tab-historique">
+      <div class="timeline-card">
+        <p class="timeline-title">Frise chronologique des commandes</p>
+        <div class="timeline-track" id="timeline-track"></div>
+      </div>
+
+      <div class="records-card">
+        <p class="records-title">Journal des modifications</p>
+        <div class="history-list" id="global-history-list"></div>
       </div>
     </div>
   </main>
@@ -561,6 +656,17 @@ body {
           <label for="f-contact">Contact client (lien Discord/Roblox, optionnel)</label>
           <input type="text" id="f-contact" placeholder="ex: https://discord.com/users/..." />
         </div>
+        <div class="field">
+          <label for="f-tags">Tags libres (optionnel)</label>
+          <input type="text" id="f-tags" placeholder="ex: prioritaire, ami, recurrent" />
+          <p class="tags-input-hint">Separe les tags par une virgule</p>
+        </div>
+        <div id="history-section" class="hidden">
+          <div class="history-toggle-row">
+            <button type="button" id="history-toggle-btn" class="goal-edit">Voir l'historique des modifications</button>
+          </div>
+          <div class="history-list hidden" id="history-list"></div>
+        </div>
       </div>
       <div class="modal-footer">
         <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
@@ -569,6 +675,7 @@ body {
           <button id="copy-recap-btn" class="btn btn-ghost hidden">Copier le recap</button>
           <button id="print-devis-btn" class="btn btn-ghost hidden">Generer un devis</button>
           <button id="share-btn" class="btn btn-ghost hidden">Partager</button>
+          <button id="focus-btn" class="btn btn-ghost hidden">Mode focus</button>
           <span class="copy-feedback" id="copy-feedback"></span>
         </div>
         <div class="modal-footer-right">
@@ -577,6 +684,32 @@ body {
         </div>
       </div>
     </div>
+  </div>
+
+  <div id="focus-overlay" class="focus-overlay hidden">
+    <button class="icon-btn focus-close" id="focus-close" aria-label="Fermer">&times;</button>
+    <p class="focus-deadline" id="focus-deadline"></p>
+    <p class="focus-client" id="focus-client"></p>
+    <p class="focus-type" id="focus-type"></p>
+    <p class="focus-desc" id="focus-desc"></p>
+    <p class="focus-timer" id="focus-timer">00:00:00</p>
+    <div class="focus-actions">
+      <button id="focus-start" class="btn btn-primary">Demarrer</button>
+      <button id="focus-pause" class="btn btn-ghost hidden">Pause</button>
+      <button id="focus-reset" class="btn btn-ghost">Reinitialiser</button>
+    </div>
+  </div>
+
+  <div id="print-bilan">
+    <p class="devis-header">Bilan mensuel</p>
+    <p class="devis-sub" id="bilan-period"></p>
+    <div class="devis-row"><span>Commandes livrees</span><span id="bilan-count"></span></div>
+    <div class="devis-row devis-total"><span>Revenu encaisse</span><span id="bilan-total"></span></div>
+    <div class="devis-row"><span>Comparaison mois precedent</span><span id="bilan-compare"></span></div>
+    <p class="bilan-section-title">Repartition par type</p>
+    <div id="bilan-types"></div>
+    <p class="bilan-section-title">Detail des commandes livrees</p>
+    <div id="bilan-list"></div>
   </div>
 
   <div id="print-devis">
@@ -624,6 +757,14 @@ body {
           <span style="font-size:13px; color:var(--text-secondary);" id="rate-display"></span>
           <button class="goal-edit" id="rate-edit-btn">Modifier le taux</button>
         </div>
+        <p class="data-section-title">Couleur d'accent</p>
+        <div class="accent-swatches" id="accent-swatches"></div>
+        <p class="data-section-title">Rappels de deadline (notifications navigateur)</p>
+        <div class="toggle-row">
+          <input type="checkbox" id="notif-toggle" />
+          <label for="notif-toggle" style="font-size:13px; color:var(--text-secondary);">Activer les rappels avant une deadline</label>
+        </div>
+        <p class="notif-status" id="notif-status"></p>
         <p class="data-section-title">Notification Discord</p>
         <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
           <span style="font-size:13px; color:var(--text-secondary);" id="webhook-display"></span>
@@ -705,15 +846,18 @@ const VIEW_KEY = 'commissions_view';
 const TAB_KEY = 'commissions_tab';
 
 function setTab(tab) {
+  if (!['accueil', 'commandes', 'revenus', 'graphiques', 'historique'].includes(tab)) tab = 'accueil';
   localStorage.setItem(TAB_KEY, tab);
-  ['accueil', 'commandes', 'analyse'].forEach(t => {
+  ['accueil', 'commandes', 'revenus', 'graphiques', 'historique'].forEach(t => {
     document.getElementById(`tab-btn-${t}`).classList.toggle('active', t === tab);
     document.getElementById(`tab-${t}`).classList.toggle('hidden', t !== tab);
   });
 }
 document.getElementById('tab-btn-accueil').addEventListener('click', () => setTab('accueil'));
 document.getElementById('tab-btn-commandes').addEventListener('click', () => setTab('commandes'));
-document.getElementById('tab-btn-analyse').addEventListener('click', () => setTab('analyse'));
+document.getElementById('tab-btn-revenus').addEventListener('click', () => setTab('revenus'));
+document.getElementById('tab-btn-graphiques').addEventListener('click', () => setTab('graphiques'));
+document.getElementById('tab-btn-historique').addEventListener('click', () => setTab('historique'));
 const RATE_KEY = 'commissions_rate';
 const TEMPLATES_KEY = 'commissions_templates';
 const WEBHOOK_KEY = 'commissions_webhook';
@@ -837,7 +981,56 @@ document.getElementById('theme-toggle').addEventListener('click', () => {
   const current = localStorage.getItem(THEME_KEY) || 'light';
   localStorage.setItem(THEME_KEY, current === 'dark' ? 'light' : 'dark');
   applyTheme();
+  applyAccent();
+  renderCharts();
 });
+
+// ---------- Couleur d'accent ----------
+const ACCENT_KEY = 'commissions_accent';
+const ACCENT_PRESETS = [
+  { id: 'mono', name: 'Noir & blanc', light: '#0a0a0a', lightContrast: '#ffffff', dark: '#f5f5f5', darkContrast: '#0a0a0a' },
+  { id: 'gold', name: 'Dore', light: '#b8862c', lightContrast: '#ffffff', dark: '#d4a24c', darkContrast: '#1a1200' },
+  { id: 'blue', name: 'Bleu', light: '#2f5aa8', lightContrast: '#ffffff', dark: '#5b8fd6', darkContrast: '#0a1526' },
+  { id: 'green', name: 'Vert', light: '#2f7a4e', lightContrast: '#ffffff', dark: '#5cbf85', darkContrast: '#08210f' },
+  { id: 'red', name: 'Rouge', light: '#b8383f', lightContrast: '#ffffff', dark: '#e06b70', darkContrast: '#260808' },
+  { id: 'purple', name: 'Violet', light: '#6b46a8', lightContrast: '#ffffff', dark: '#a380d9', darkContrast: '#160a26' }
+];
+
+function getAccentId() {
+  return localStorage.getItem(ACCENT_KEY) || 'mono';
+}
+
+function getAccentPreset() {
+  return ACCENT_PRESETS.find(p => p.id === getAccentId()) || ACCENT_PRESETS[0];
+}
+
+function applyAccent() {
+  const preset = getAccentPreset();
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  document.documentElement.style.setProperty('--accent', isDark ? preset.dark : preset.light);
+  document.documentElement.style.setProperty('--accent-contrast', isDark ? preset.darkContrast : preset.lightContrast);
+}
+
+function renderAccentSwatches() {
+  const container = document.getElementById('accent-swatches');
+  if (!container) return;
+  const current = getAccentId();
+  container.innerHTML = '';
+  ACCENT_PRESETS.forEach(p => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'accent-swatch' + (p.id === current ? ' active' : '');
+    btn.style.background = p.light;
+    btn.title = p.name;
+    btn.addEventListener('click', () => {
+      localStorage.setItem(ACCENT_KEY, p.id);
+      applyAccent();
+      renderAccentSwatches();
+      renderCharts();
+    });
+    container.appendChild(btn);
+  });
+}
 
 // ---------- Vue kanban / liste / calendrier ----------
 function setView(mode) {
@@ -940,6 +1133,8 @@ function renderCalendarView() {
   renderRecords();
   renderHeatmap();
   renderTimeline();
+  renderWeekdayStats();
+  renderGlobalHistoryLog();
 }
 
 document.getElementById('calendar-prev').addEventListener('click', () => {
@@ -1028,6 +1223,7 @@ function renderBoard() {
         </div>
         <div class="card-tags">
           <span class="card-tag">${escapeHtml(o.type)}</span>
+          ${(o.tags || []).map(t => `<span class="card-tag tag-custom">${escapeHtml(t)}</span>`).join('')}
           ${alert === 'overdue' ? '<span class="card-tag alert-overdue">En retard</span>' : ''}
           ${alert === 'soon' ? '<span class="card-tag alert-soon">Bientot</span>' : ''}
         </div>
@@ -1062,6 +1258,8 @@ function renderBoard() {
   renderRecords();
   renderHeatmap();
   renderTimeline();
+  renderWeekdayStats();
+  renderGlobalHistoryLog();
 }
 
 function renderList() {
@@ -1107,6 +1305,8 @@ function renderList() {
   renderRecords();
   renderHeatmap();
   renderTimeline();
+  renderWeekdayStats();
+  renderGlobalHistoryLog();
 }
 
 function setOrderStatus(order, newKey) {
@@ -1208,10 +1408,11 @@ function renderCharts() {
     });
     const values = keys.map(k => monthly[k]);
 
+    const accentColor = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || barColor;
     if (revenueChart) revenueChart.destroy();
     revenueChart = new Chart(document.getElementById('chart-revenue'), {
       type: 'bar',
-      data: { labels, datasets: [{ data: values, backgroundColor: barColor, borderRadius: 4, maxBarThickness: 36 }] },
+      data: { labels, datasets: [{ data: values, backgroundColor: accentColor, borderRadius: 4, maxBarThickness: 36 }] },
       options: {
         responsive: true, maintainAspectRatio: false,
         plugins: { legend: { display: false } },
@@ -1416,6 +1617,51 @@ function renderAvgDelivery() {
   });
 }
 
+// ---------- Stats par jour de la semaine ----------
+function renderWeekdayStats() {
+  const container = document.getElementById('weekday-bars');
+  if (!container) return;
+  const jours = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
+  const created = [0, 0, 0, 0, 0, 0, 0];
+  const delivered = [0, 0, 0, 0, 0, 0, 0];
+
+  orders.forEach(o => {
+    if (o.createdAt) {
+      const idx = (new Date(o.createdAt).getDay() + 6) % 7;
+      created[idx]++;
+    }
+    if (o.paidAt) {
+      const idx = (new Date(o.paidAt).getDay() + 6) % 7;
+      delivered[idx]++;
+    }
+  });
+
+  const max = Math.max(1, ...created, ...delivered);
+  container.innerHTML = '';
+  jours.forEach((jour, i) => {
+    const col = document.createElement('div');
+    col.className = 'weekday-bar-col';
+    const group = document.createElement('div');
+    group.className = 'weekday-bar-group';
+    const barC = document.createElement('div');
+    barC.className = 'weekday-bar created';
+    barC.style.height = `${Math.max(2, (created[i] / max) * 100)}px`;
+    barC.title = `${jour} : ${created[i]} ajoutee${created[i] !== 1 ? 's' : ''}`;
+    const barD = document.createElement('div');
+    barD.className = 'weekday-bar delivered';
+    barD.style.height = `${Math.max(2, (delivered[i] / max) * 100)}px`;
+    barD.title = `${jour} : ${delivered[i]} livree${delivered[i] !== 1 ? 's' : ''}`;
+    group.appendChild(barC);
+    group.appendChild(barD);
+    const label = document.createElement('span');
+    label.className = 'weekday-bar-label';
+    label.textContent = jour;
+    col.appendChild(group);
+    col.appendChild(label);
+    container.appendChild(col);
+  });
+}
+
 // ---------- Message d'accueil + meteo ironique ----------
 function renderGreeting() {
   const hour = new Date().getHours();
@@ -1560,9 +1806,18 @@ function renderTimeline() {
   });
 }
 
+function hexToRgb(hex) {
+  const clean = hex.replace('#', '').trim();
+  const full = clean.length === 3 ? clean.split('').map((c) => c + c).join('') : clean;
+  const bigint = parseInt(full, 16);
+  return [(bigint >> 16) & 255, (bigint >> 8) & 255, bigint & 255];
+}
+
 function goalBarColor(pct) {
   const start = [138, 138, 138];
-  const end = [212, 175, 55];
+  const preset = getAccentPreset();
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  const end = hexToRgb(isDark ? preset.dark : preset.light);
   const t = Math.min(1, Math.max(0, pct / 100));
   const rgb = start.map((s, i) => Math.round(s + (end[i] - s) * t));
   return `rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`;
@@ -1630,9 +1885,9 @@ document.getElementById('sort-select').addEventListener('change', (e) => {
 
 // ---------- Export CSV ----------
 document.getElementById('export-btn').addEventListener('click', () => {
-  const headers = ['Client', 'Type', 'Description', 'Prix', 'Devise', 'Acompte', 'Deadline', 'Statut'];
+  const headers = ['Client', 'Type', 'Description', 'Prix', 'Devise', 'Acompte', 'Deadline', 'Statut', 'Tags'];
   const rows = orders.map(o => [
-    o.client, o.type, o.description, o.price || '', o.currency || 'RBX', o.deposit || '', o.deadline || '', statusLabelOf(o.status)
+    o.client, o.type, o.description, o.price || '', o.currency || 'RBX', o.deposit || '', o.deadline || '', statusLabelOf(o.status), (o.tags || []).join('|')
   ]);
   const csv = [headers, ...rows]
     .map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(','))
@@ -1688,7 +1943,9 @@ document.getElementById('import-file').addEventListener('change', (e) => {
         deposit: r[5] || '',
         deadline: r[6] || '',
         status: statusKeyByLabel[r[7]] || 'attente',
-        createdAt: new Date().toISOString()
+        tags: r[8] ? r[8].split('|').map(t => t.trim()).filter(Boolean) : [],
+        createdAt: new Date().toISOString(),
+        history: []
       }));
       const confirmMsg = `Ajouter ${imported.length} commande(s) importee(s) a tes commandes actuelles ?`;
       if (window.confirm(confirmMsg)) {
@@ -1729,6 +1986,8 @@ document.getElementById('data-btn').addEventListener('click', () => {
   renderBackups();
   renderRate();
   renderWebhook();
+  renderAccentSwatches();
+  renderNotifStatus();
   dataOverlay.classList.remove('hidden');
 });
 document.getElementById('data-close').addEventListener('click', () => dataOverlay.classList.add('hidden'));
@@ -1764,6 +2023,86 @@ document.getElementById('webhook-edit-btn').addEventListener('click', () => {
   }
   renderWebhook();
 });
+
+// ---------- Rappels de deadline (notifications navigateur) ----------
+const NOTIF_KEY = 'commissions_notif_enabled';
+const NOTIFIED_KEY = 'commissions_notified_ids';
+
+function isNotifEnabled() {
+  return localStorage.getItem(NOTIF_KEY) === '1';
+}
+
+function renderNotifStatus() {
+  const statusEl = document.getElementById('notif-status');
+  const toggle = document.getElementById('notif-toggle');
+  if (!('Notification' in window)) {
+    toggle.checked = false;
+    toggle.disabled = true;
+    statusEl.textContent = 'Notifications non supportees par ce navigateur.';
+    return;
+  }
+  toggle.disabled = false;
+  toggle.checked = isNotifEnabled() && Notification.permission === 'granted';
+  if (Notification.permission === 'denied') {
+    statusEl.textContent = 'Notifications bloquees dans les reglages du navigateur.';
+  } else if (toggle.checked) {
+    statusEl.textContent = 'Actif tant que ce navigateur reste ouvert, meme en arriere-plan.';
+  } else {
+    statusEl.textContent = "Prevenu la veille et le jour d'une deadline.";
+  }
+}
+
+document.getElementById('notif-toggle').addEventListener('change', (e) => {
+  if (e.target.checked) {
+    if (!('Notification' in window)) { e.target.checked = false; return; }
+    Notification.requestPermission().then((perm) => {
+      if (perm === 'granted') {
+        localStorage.setItem(NOTIF_KEY, '1');
+        checkDeadlineNotifications();
+      } else {
+        localStorage.setItem(NOTIF_KEY, '0');
+      }
+      renderNotifStatus();
+    });
+  } else {
+    localStorage.setItem(NOTIF_KEY, '0');
+    renderNotifStatus();
+  }
+});
+
+function sendNotification(title, body) {
+  if (navigator.serviceWorker && navigator.serviceWorker.controller) {
+    navigator.serviceWorker.ready.then((reg) => reg.showNotification(title, { body })).catch(() => {
+      try { new Notification(title, { body }); } catch (e) { /* ignore */ }
+    });
+  } else {
+    try { new Notification(title, { body }); } catch (e) { /* ignore */ }
+  }
+}
+
+function checkDeadlineNotifications() {
+  if (!isNotifEnabled() || !('Notification' in window) || Notification.permission !== 'granted') return;
+  const notified = JSON.parse(localStorage.getItem(NOTIFIED_KEY) || '{}');
+  const todayKey = new Date().toISOString().slice(0, 10);
+  let changed = false;
+  orders.forEach((o) => {
+    if (o.status === 'livre' || !o.deadline) return;
+    const diff = daysUntil(o.deadline);
+    if (diff <= 1) {
+      const notifKey = `${o.id}_${todayKey}`;
+      if (!notified[notifKey]) {
+        let msg;
+        if (diff < 0) msg = `En retard de ${Math.abs(diff)}j`;
+        else if (diff === 0) msg = "Deadline aujourd'hui";
+        else msg = 'Deadline demain';
+        sendNotification(`Commissions - ${o.client}`, `${msg} (${o.type})`);
+        notified[notifKey] = true;
+        changed = true;
+      }
+    }
+  });
+  if (changed) localStorage.setItem(NOTIFIED_KEY, JSON.stringify(notified));
+}
 
 function renderBackups() {
   const backups = JSON.parse(localStorage.getItem(BACKUP_KEY) || '[]');
@@ -1856,6 +2195,7 @@ const copyFeedback = document.getElementById('copy-feedback');
 const printDevisBtn = document.getElementById('print-devis-btn');
 const duplicateBtn = document.getElementById('duplicate-btn');
 const shareBtn = document.getElementById('share-btn');
+const focusBtn = document.getElementById('focus-btn');
 
 document.getElementById('new-order-btn').addEventListener('click', () => openNewModal());
 document.getElementById('modal-close').addEventListener('click', closeModal);
@@ -1880,6 +2220,7 @@ function openNewModal(prefill) {
   printDevisBtn.classList.add('hidden');
   duplicateBtn.classList.add('hidden');
   shareBtn.classList.add('hidden');
+  focusBtn.classList.add('hidden');
   copyFeedback.textContent = '';
   document.getElementById('f-client').value = '';
   document.getElementById('f-type').value = (prefill && prefill.type) || 'Build';
@@ -1890,6 +2231,8 @@ function openNewModal(prefill) {
   document.getElementById('f-deadline').value = '';
   document.getElementById('f-priority').value = 'normal';
   document.getElementById('f-contact').value = '';
+  document.getElementById('f-tags').value = '';
+  document.getElementById('history-section').classList.add('hidden');
   modalOverlay.classList.remove('hidden');
 }
 
@@ -1904,6 +2247,7 @@ function openEditModal(id) {
   printDevisBtn.classList.remove('hidden');
   duplicateBtn.classList.remove('hidden');
   shareBtn.classList.remove('hidden');
+  focusBtn.classList.remove('hidden');
   copyFeedback.textContent = '';
   document.getElementById('f-client').value = o.client;
   document.getElementById('f-type').value = o.type;
@@ -1914,8 +2258,69 @@ function openEditModal(id) {
   document.getElementById('f-deadline').value = o.deadline || '';
   document.getElementById('f-priority').value = o.priority || 'normal';
   document.getElementById('f-contact').value = o.contact || '';
+  document.getElementById('f-tags').value = (o.tags || []).join(', ');
+  const historySection = document.getElementById('history-section');
+  const historyList = document.getElementById('history-list');
+  const historyToggleBtn = document.getElementById('history-toggle-btn');
+  historyList.classList.add('hidden');
+  historyToggleBtn.textContent = "Voir l'historique des modifications";
+  historySection.classList.toggle('hidden', !(o.history && o.history.length > 0));
   modalOverlay.classList.remove('hidden');
 }
+
+function renderGlobalHistoryLog() {
+  const list = document.getElementById('global-history-list');
+  if (!list) return;
+  const entries = [];
+  orders.forEach(o => {
+    (o.history || []).forEach(h => {
+      entries.push({ date: h.date, client: o.client, changes: h.changes });
+    });
+  });
+  entries.sort((a, b) => new Date(b.date) - new Date(a.date));
+  if (entries.length === 0) {
+    list.innerHTML = '<div class="empty-col">Aucune modification enregistree pour le moment</div>';
+    return;
+  }
+  list.innerHTML = entries.slice(0, 100).map(e => {
+    const d = new Date(e.date);
+    return `
+      <div class="history-item">
+        <div class="history-item-date">${d.toLocaleDateString('fr-FR')} a ${d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })} &middot; <strong>${escapeHtml(e.client)}</strong></div>
+        <div>${e.changes.map(c => escapeHtml(c)).join('<br/>')}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderHistoryList(o) {
+  const list = document.getElementById('history-list');
+  if (!o.history || o.history.length === 0) { list.innerHTML = ''; return; }
+  list.innerHTML = o.history.map(h => {
+    const d = new Date(h.date);
+    return `
+      <div class="history-item">
+        <div class="history-item-date">${d.toLocaleDateString('fr-FR')} a ${d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</div>
+        <div>${h.changes.map(c => escapeHtml(c)).join('<br/>')}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+document.getElementById('history-toggle-btn').addEventListener('click', () => {
+  const listEl = document.getElementById('history-list');
+  const btn = document.getElementById('history-toggle-btn');
+  const isHidden = listEl.classList.contains('hidden');
+  if (isHidden) {
+    const o = orders.find(x => x.id === editingId);
+    if (o) renderHistoryList(o);
+    listEl.classList.remove('hidden');
+    btn.textContent = "Masquer l'historique";
+  } else {
+    listEl.classList.add('hidden');
+    btn.textContent = "Voir l'historique des modifications";
+  }
+});
 
 function currencyLabelOf(o) {
   return (o.currency || 'RBX') === 'EUR' ? '\u20ac' : 'RBX';
@@ -1935,6 +2340,7 @@ copyRecapBtn.addEventListener('click', () => {
   if (o.deadline) lines.push(`Deadline : ${formatDate(o.deadline)}`);
   if (o.price) lines.push(`Prix : ${o.price} ${cur}`);
   if (o.deposit) lines.push(`Acompte recu : ${o.deposit} ${cur}`);
+  if (o.tags && o.tags.length) lines.push(`Tags : ${o.tags.join(', ')}`);
   const text = lines.join('\n');
 
   navigator.clipboard.writeText(text).then(() => {
@@ -1956,6 +2362,49 @@ printDevisBtn.addEventListener('click', () => {
   document.getElementById('print-desc').textContent = o.description;
   document.getElementById('print-deadline').textContent = o.deadline ? formatDate(o.deadline) : '-';
   document.getElementById('print-price').textContent = o.price ? `${o.price} ${cur}` : '-';
+  document.getElementById('print-bilan').classList.remove('print-active');
+  document.getElementById('print-devis').classList.add('print-active');
+  window.print();
+});
+
+// ---------- Export bilan mensuel (PDF via impression) ----------
+document.getElementById('export-bilan-btn').addEventListener('click', () => {
+  const now = new Date();
+  const monthNames = ['Janvier', 'Fevrier', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Aout', 'Septembre', 'Octobre', 'Novembre', 'Decembre'];
+  const thisMonthKey = `${now.getFullYear()}-${now.getMonth()}`;
+  const paidThisMonth = orders.filter((o) => o.status === 'livre' && o.paidAt && `${new Date(o.paidAt).getFullYear()}-${new Date(o.paidAt).getMonth()}` === thisMonthKey);
+  const total = paidThisMonth.reduce((s, o) => s + amountInRBX(o), 0);
+
+  const lastMonthDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  const lastMonthKey = `${lastMonthDate.getFullYear()}-${lastMonthDate.getMonth()}`;
+  const paidLastMonth = orders.filter((o) => o.status === 'livre' && o.paidAt && `${new Date(o.paidAt).getFullYear()}-${new Date(o.paidAt).getMonth()}` === lastMonthKey);
+  const totalLast = paidLastMonth.reduce((s, o) => s + amountInRBX(o), 0);
+
+  document.getElementById('bilan-period').textContent = `${monthNames[now.getMonth()]} ${now.getFullYear()}`;
+  document.getElementById('bilan-count').textContent = String(paidThisMonth.length);
+  document.getElementById('bilan-total').textContent = `${total.toLocaleString('fr-FR')} RBX`;
+
+  let compareText = 'Pas de donnees le mois precedent';
+  if (totalLast > 0) {
+    const change = ((total - totalLast) / totalLast) * 100;
+    compareText = `${change >= 0 ? '+' : ''}${change.toFixed(0)}% vs mois precedent`;
+  }
+  document.getElementById('bilan-compare').textContent = compareText;
+
+  const byType = {};
+  paidThisMonth.forEach((o) => { byType[o.type] = (byType[o.type] || 0) + amountInRBX(o); });
+  const typesContainer = document.getElementById('bilan-types');
+  typesContainer.innerHTML = Object.keys(byType).length
+    ? Object.entries(byType).map(([type, val]) => `<div class="bilan-type-row"><span>${escapeHtml(type)}</span><span>${val.toLocaleString('fr-FR')} RBX</span></div>`).join('')
+    : '<p style="font-size:12px; color:#888;">Aucune commande livree ce mois-ci</p>';
+
+  const listContainer = document.getElementById('bilan-list');
+  listContainer.innerHTML = paidThisMonth.length
+    ? paidThisMonth.map((o) => `<div class="bilan-type-row"><span>${escapeHtml(o.client)} (${escapeHtml(o.type)})</span><span>${o.price || '-'} ${currencyLabelOf(o)}</span></div>`).join('')
+    : '<p style="font-size:12px; color:#888;">Aucune commande livree ce mois-ci</p>';
+
+  document.getElementById('print-devis').classList.remove('print-active');
+  document.getElementById('print-bilan').classList.add('print-active');
   window.print();
 });
 
@@ -1998,6 +2447,75 @@ function closeModal() {
   editingId = null;
 }
 
+// ---------- Mode focus ----------
+let focusTimerInterval = null;
+let focusElapsedSeconds = 0;
+
+function formatTimer(totalSeconds) {
+  const h = Math.floor(totalSeconds / 3600);
+  const m = Math.floor((totalSeconds % 3600) / 60);
+  const s = totalSeconds % 60;
+  return [h, m, s].map((v) => String(v).padStart(2, '0')).join(':');
+}
+
+function openFocusModal() {
+  if (!editingId) return;
+  const o = orders.find((x) => x.id === editingId);
+  if (!o) return;
+  clearInterval(focusTimerInterval);
+  focusTimerInterval = null;
+  focusElapsedSeconds = 0;
+  document.getElementById('focus-timer').textContent = formatTimer(0);
+  document.getElementById('focus-start').textContent = 'Demarrer';
+  document.getElementById('focus-start').classList.remove('hidden');
+  document.getElementById('focus-pause').classList.add('hidden');
+  document.getElementById('focus-client').textContent = o.client;
+  document.getElementById('focus-type').textContent = o.type;
+  document.getElementById('focus-desc').textContent = o.description;
+  const deadlineEl = document.getElementById('focus-deadline');
+  if (o.deadline) {
+    const alert = deadlineState(o);
+    deadlineEl.textContent = `Deadline : ${formatDate(o.deadline)}`;
+    deadlineEl.className = 'focus-deadline' + (alert === 'overdue' ? ' overdue' : alert === 'soon' ? ' soon' : '');
+  } else {
+    deadlineEl.textContent = 'Pas de deadline';
+    deadlineEl.className = 'focus-deadline';
+  }
+  modalOverlay.classList.add('hidden');
+  document.getElementById('focus-overlay').classList.remove('hidden');
+}
+
+function closeFocusModal() {
+  clearInterval(focusTimerInterval);
+  focusTimerInterval = null;
+  document.getElementById('focus-overlay').classList.add('hidden');
+}
+
+focusBtn.addEventListener('click', openFocusModal);
+document.getElementById('focus-close').addEventListener('click', closeFocusModal);
+
+document.getElementById('focus-start').addEventListener('click', () => {
+  document.getElementById('focus-start').classList.add('hidden');
+  document.getElementById('focus-pause').classList.remove('hidden');
+  focusTimerInterval = setInterval(() => {
+    focusElapsedSeconds++;
+    document.getElementById('focus-timer').textContent = formatTimer(focusElapsedSeconds);
+  }, 1000);
+});
+
+document.getElementById('focus-pause').addEventListener('click', () => {
+  clearInterval(focusTimerInterval);
+  focusTimerInterval = null;
+  document.getElementById('focus-start').textContent = 'Reprendre';
+  document.getElementById('focus-start').classList.remove('hidden');
+  document.getElementById('focus-pause').classList.add('hidden');
+});
+
+document.getElementById('focus-reset').addEventListener('click', () => {
+  focusElapsedSeconds = 0;
+  document.getElementById('focus-timer').textContent = formatTimer(0);
+});
+
 deleteBtn.addEventListener('click', () => {
   if (!editingId) return;
   orders = orders.filter(o => o.id !== editingId);
@@ -2016,23 +2534,49 @@ saveBtn.addEventListener('click', () => {
   const deadline = document.getElementById('f-deadline').value;
   const priority = document.getElementById('f-priority').value;
   const contact = document.getElementById('f-contact').value.trim();
+  const tagsRaw = document.getElementById('f-tags').value.trim();
+  const tags = tagsRaw ? tagsRaw.split(',').map(t => t.trim()).filter(Boolean) : [];
   if (!client || !description) return;
 
   if (editingId) {
     const o = orders.find(x => x.id === editingId);
-    Object.assign(o, { client, type, description, price, currency, deposit, deadline, priority, contact });
+    const trackedFields = [
+      ['client', 'Client'], ['type', 'Type'], ['description', 'Description'], ['price', 'Prix'],
+      ['currency', 'Devise'], ['deposit', 'Acompte'], ['deadline', 'Deadline'], ['priority', 'Priorite'],
+      ['contact', 'Contact']
+    ];
+    const newValues = { client, type, description, price, currency, deposit, deadline, priority, contact };
+    const changes = [];
+    trackedFields.forEach(([key, label]) => {
+      const oldVal = o[key] || '';
+      const newVal = newValues[key] || '';
+      if (String(oldVal) !== String(newVal)) {
+        changes.push(`${label} : "${oldVal || '-'}" -> "${newVal || '-'}"`);
+      }
+    });
+    const oldTags = (o.tags || []).join(', ');
+    const newTags = tags.join(', ');
+    if (oldTags !== newTags) changes.push(`Tags : "${oldTags || '-'}" -> "${newTags || '-'}"`);
+
+    Object.assign(o, { client, type, description, price, currency, deposit, deadline, priority, contact, tags });
+    if (changes.length > 0) {
+      o.history = o.history || [];
+      o.history.unshift({ date: new Date().toISOString(), changes });
+    }
   } else {
     orders.push({
       id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
-      client, type, description, price, currency, deposit, deadline, priority, contact,
+      client, type, description, price, currency, deposit, deadline, priority, contact, tags,
       status: 'attente',
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      history: []
     });
     notifyDiscord(`Nouvelle commande : ${client} (${type})${price ? ' - ' + price + ' ' + (currency === 'EUR' ? '\u20ac' : 'RBX') : ''}`);
   }
   save();
   closeModal();
   render();
+  checkDeadlineNotifications();
 });
 
 // ---------- Modeles de commande ----------
@@ -2106,6 +2650,7 @@ document.addEventListener('keydown', (e) => {
 
   if (e.key === 'Escape') {
     [modalOverlay, clientsOverlay, notesOverlay, dataOverlay, templatesOverlay].forEach(m => m.classList.add('hidden'));
+    closeFocusModal();
     return;
   }
   if (typing) return;
@@ -2183,10 +2728,13 @@ if ('serviceWorker' in navigator) {
 
 // ---------- Init ----------
 applyTheme();
+applyAccent();
 setTab(localStorage.getItem(TAB_KEY) || 'accueil');
 if (!checkShareView()) {
   setView(viewMode);
 }
+checkDeadlineNotifications();
+setInterval(checkDeadlineNotifications, 30 * 60 * 1000);
 </script>
 </body>
 </html>
