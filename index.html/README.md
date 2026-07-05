@@ -33,6 +33,13 @@ Une fois le site en ligne, ouvre-le dans Chrome ou Safari :
 
 L'app fonctionne alors comme une vraie application, meme sans connexion.
 
+## Organisation
+
+L'app est divisee en 3 onglets, en haut de la page :
+- **Accueil** : message d'accueil, stats rapides, objectif du mois, deadlines a surveiller
+- **Commandes** : kanban / liste / calendrier, recherche, filtres et tri
+- **Analyse** : graphiques, records perso, heatmap d'activite, frise chronologique, delai moyen de livraison
+
 ## Raccourcis clavier
 
 - `N` : nouvelle commande

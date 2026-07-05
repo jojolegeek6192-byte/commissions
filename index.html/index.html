@@ -346,6 +346,15 @@ body {
 .share-footer { margin-top: 20px; font-size: 12px; color: var(--text-muted); text-align: center; }
 
 .shortcut-hint { font-size: 11px; color: var(--text-faint); margin-left: 4px; }
+
+.tabs-nav { display: flex; gap: 4px; border-bottom: 1px solid var(--border); margin-bottom: 28px; }
+.tab-btn {
+  font-family: var(--font-body); font-size: 13px; font-weight: 500; color: var(--text-muted);
+  background: none; border: none; padding: 10px 4px; margin-right: 22px; cursor: pointer;
+  border-bottom: 2px solid transparent; margin-bottom: -1px;
+}
+.tab-btn:hover { color: var(--text); }
+.tab-btn.active { color: var(--text); border-bottom-color: var(--text); }
 </style>
 </head>
 <body>
@@ -374,108 +383,120 @@ body {
   </header>
 
   <main class="main">
-    <p class="greeting" id="greeting"></p>
-    <section class="stats">
-      <div class="stat-card">
-        <span class="stat-label">Commandes actives</span>
-        <span class="stat-value" id="stat-active">0</span>
-      </div>
-      <div class="stat-card">
-        <span class="stat-label">A encaisser</span>
-        <span class="stat-value" id="stat-pending">0</span>
-      </div>
-      <div class="stat-card">
-        <span class="stat-label">Encaisse</span>
-        <span class="stat-value" id="stat-paid">0</span>
-      </div>
-      <div class="stat-card">
-        <span class="stat-label">Total commandes</span>
-        <span class="stat-value" id="stat-total">0</span>
-      </div>
-    </section>
-
-    <div class="goal-card">
-      <span class="goal-label">Objectif du mois</span>
-      <div class="goal-bar-track"><div class="goal-bar-fill" id="goal-fill" style="width:0%;"></div></div>
-      <span class="goal-value" id="goal-value">0 / 0 R$</span>
-      <span class="goal-compare" id="goal-compare"></span>
-      <button class="goal-edit" id="goal-edit-btn">Modifier</button>
+    <div class="tabs-nav">
+      <button class="tab-btn active" id="tab-btn-accueil">Accueil</button>
+      <button class="tab-btn" id="tab-btn-commandes">Commandes</button>
+      <button class="tab-btn" id="tab-btn-analyse">Analyse</button>
     </div>
 
-    <div class="records-card">
-      <p class="records-title">Records perso</p>
-      <div class="records-list" id="records-list"></div>
+    <div class="tab-panel" id="tab-accueil">
+      <p class="greeting" id="greeting"></p>
+      <section class="stats">
+        <div class="stat-card">
+          <span class="stat-label">Commandes actives</span>
+          <span class="stat-value" id="stat-active">0</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">A encaisser</span>
+          <span class="stat-value" id="stat-pending">0</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Encaisse</span>
+          <span class="stat-value" id="stat-paid">0</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">Total commandes</span>
+          <span class="stat-value" id="stat-total">0</span>
+        </div>
+      </section>
+
+      <div class="goal-card">
+        <span class="goal-label">Objectif du mois</span>
+        <div class="goal-bar-track"><div class="goal-bar-fill" id="goal-fill" style="width:0%;"></div></div>
+        <span class="goal-value" id="goal-value">0 / 0 R$</span>
+        <span class="goal-compare" id="goal-compare"></span>
+        <button class="goal-edit" id="goal-edit-btn">Modifier</button>
+      </div>
+
+      <section class="today-section hidden" id="today-section">
+        <p class="today-title">A surveiller cette semaine</p>
+        <div class="today-list" id="today-list"></div>
+      </section>
     </div>
 
-    <section class="today-section hidden" id="today-section">
-      <p class="today-title">A surveiller cette semaine</p>
-      <div class="today-list" id="today-list"></div>
-    </section>
+    <div class="tab-panel hidden" id="tab-commandes">
+      <div class="toolbar">
+        <input type="text" id="search-input" placeholder="Rechercher un client ou une description..." />
+        <select id="filter-type">
+          <option value="">Tous les types</option>
+          <option value="Build">Build / map</option>
+          <option value="Script">Script</option>
+          <option value="UI">UI / GFX</option>
+          <option value="Systeme">Systeme complet</option>
+          <option value="Autre">Autre</option>
+        </select>
+        <select id="sort-select">
+          <option value="deadline">Trier : deadline</option>
+          <option value="price-desc">Trier : prix decroissant</option>
+          <option value="price-asc">Trier : prix croissant</option>
+          <option value="client-asc">Trier : client A-Z</option>
+        </select>
+        <div class="seg">
+          <button id="view-kanban" class="active">Kanban</button>
+          <button id="view-list">Liste</button>
+          <button id="view-calendar">Calendrier</button>
+        </div>
+      </div>
 
-    <div class="heatmap-card">
-      <p class="heatmap-title">Activite des 12 dernieres semaines</p>
-      <div class="heatmap-grid" id="heatmap-grid"></div>
+      <section class="board" id="board"></section>
+      <section class="list-view hidden" id="list-container">
+        <div class="list-header">
+          <span>Client</span><span>Type</span><span>Description</span><span>Prix</span><span>Deadline</span><span>Statut</span>
+        </div>
+        <div id="list-view"></div>
+      </section>
+      <section class="hidden" id="calendar-container">
+        <div class="calendar-nav">
+          <button class="calendar-nav-btn" id="calendar-prev">&larr;</button>
+          <span class="calendar-month-label" id="calendar-label"></span>
+          <button class="calendar-nav-btn" id="calendar-next">&rarr;</button>
+        </div>
+        <div class="calendar-grid" id="calendar-grid"></div>
+      </section>
     </div>
 
-    <div class="timeline-card">
-      <p class="timeline-title">Frise chronologique des commandes</p>
-      <div class="timeline-track" id="timeline-track"></div>
-    </div>
-
-    <section class="charts">
-      <div class="chart-card">
-        <p class="chart-title">Revenus encaisses par mois (en RBX)</p>
-        <div class="chart-box"><canvas id="chart-revenue"></canvas></div>
+    <div class="tab-panel hidden" id="tab-analyse">
+      <div class="records-card">
+        <p class="records-title">Records perso</p>
+        <div class="records-list" id="records-list"></div>
       </div>
-      <div class="chart-card">
-        <p class="chart-title">Repartition par type</p>
-        <div class="chart-box"><canvas id="chart-types"></canvas></div>
+
+      <div class="heatmap-card">
+        <p class="heatmap-title">Activite des 12 dernieres semaines</p>
+        <div class="heatmap-grid" id="heatmap-grid"></div>
       </div>
-    </section>
 
-    <div class="avg-card">
-      <p class="avg-title">Delai moyen de livraison</p>
-      <div class="avg-list" id="avg-list"></div>
-    </div>
+      <div class="timeline-card">
+        <p class="timeline-title">Frise chronologique des commandes</p>
+        <div class="timeline-track" id="timeline-track"></div>
+      </div>
 
-    <div class="toolbar">
-      <input type="text" id="search-input" placeholder="Rechercher un client ou une description..." />
-      <select id="filter-type">
-        <option value="">Tous les types</option>
-        <option value="Build">Build / map</option>
-        <option value="Script">Script</option>
-        <option value="UI">UI / GFX</option>
-        <option value="Systeme">Systeme complet</option>
-        <option value="Autre">Autre</option>
-      </select>
-      <select id="sort-select">
-        <option value="deadline">Trier : deadline</option>
-        <option value="price-desc">Trier : prix decroissant</option>
-        <option value="price-asc">Trier : prix croissant</option>
-        <option value="client-asc">Trier : client A-Z</option>
-      </select>
-      <div class="seg">
-        <button id="view-kanban" class="active">Kanban</button>
-        <button id="view-list">Liste</button>
-        <button id="view-calendar">Calendrier</button>
+      <section class="charts">
+        <div class="chart-card">
+          <p class="chart-title">Revenus encaisses par mois (en RBX)</p>
+          <div class="chart-box"><canvas id="chart-revenue"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <p class="chart-title">Repartition par type</p>
+          <div class="chart-box"><canvas id="chart-types"></canvas></div>
+        </div>
+      </section>
+
+      <div class="avg-card">
+        <p class="avg-title">Delai moyen de livraison</p>
+        <div class="avg-list" id="avg-list"></div>
       </div>
     </div>
-
-    <section class="board" id="board"></section>
-    <section class="list-view hidden" id="list-container">
-      <div class="list-header">
-        <span>Client</span><span>Type</span><span>Description</span><span>Prix</span><span>Deadline</span><span>Statut</span>
-      </div>
-      <div id="list-view"></div>
-    </section>
-    <section class="hidden" id="calendar-container">
-      <div class="calendar-nav">
-        <button class="calendar-nav-btn" id="calendar-prev">&larr;</button>
-        <span class="calendar-month-label" id="calendar-label"></span>
-        <button class="calendar-nav-btn" id="calendar-next">&rarr;</button>
-      </div>
-      <div class="calendar-grid" id="calendar-grid"></div>
-    </section>
   </main>
 
   <div id="modal-overlay" class="modal-overlay hidden">
@@ -681,6 +702,18 @@ const STORAGE_KEY = 'commissions_data';
 const THEME_KEY = 'commissions_theme';
 const GOAL_KEY = 'commissions_goal';
 const VIEW_KEY = 'commissions_view';
+const TAB_KEY = 'commissions_tab';
+
+function setTab(tab) {
+  localStorage.setItem(TAB_KEY, tab);
+  ['accueil', 'commandes', 'analyse'].forEach(t => {
+    document.getElementById(`tab-btn-${t}`).classList.toggle('active', t === tab);
+    document.getElementById(`tab-${t}`).classList.toggle('hidden', t !== tab);
+  });
+}
+document.getElementById('tab-btn-accueil').addEventListener('click', () => setTab('accueil'));
+document.getElementById('tab-btn-commandes').addEventListener('click', () => setTab('commandes'));
+document.getElementById('tab-btn-analyse').addEventListener('click', () => setTab('analyse'));
 const RATE_KEY = 'commissions_rate';
 const TEMPLATES_KEY = 'commissions_templates';
 const WEBHOOK_KEY = 'commissions_webhook';
@@ -2117,6 +2150,7 @@ if ('serviceWorker' in navigator) {
 
 // ---------- Init ----------
 applyTheme();
+setTab(localStorage.getItem(TAB_KEY) || 'accueil');
 if (!checkShareView()) {
   setView(viewMode);
 }
