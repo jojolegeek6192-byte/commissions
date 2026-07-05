@@ -90,6 +90,18 @@ body {
 .main { max-width: 1180px; margin: 0 auto; padding: 32px 40px 60px; }
 
 .today-section { margin-bottom: 24px; }
+.today-hero {
+  border: 1px solid var(--border); border-radius: var(--radius); padding: 22px 24px; margin-bottom: 20px;
+  background: var(--surface-alt); cursor: pointer; transition: border-color 0.15s;
+}
+.today-hero:hover { border-color: var(--accent); }
+.today-hero.is-overdue { border-color: #c23b3b; background: rgba(194,59,59,0.08); }
+.today-hero.is-soon { border-color: #b8860b; background: rgba(184,134,11,0.08); }
+.today-hero.is-calm { cursor: default; }
+.today-hero.is-calm:hover { border-color: var(--border); }
+.today-hero-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); }
+.today-hero-main { font-size: 22px; font-weight: 600; margin: 6px 0 4px; font-family: 'Space Grotesk', sans-serif; }
+.today-hero-sub { font-size: 13px; color: var(--text-secondary); }
 .today-title { font-size: 12px; color: var(--text-muted); margin: 0 0 10px; }
 .today-list { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 4px; }
 .today-chip {
@@ -468,6 +480,13 @@ body {
 
     <div class="tab-panel" id="tab-accueil">
       <p class="greeting" id="greeting"></p>
+
+      <div class="today-hero" id="today-hero">
+        <span class="today-hero-label" id="today-hero-label">Priorite du jour</span>
+        <p class="today-hero-main" id="today-hero-main"></p>
+        <span class="today-hero-sub" id="today-hero-sub"></span>
+      </div>
+
       <section class="stats">
         <div class="stat-card">
           <span class="stat-label">Commandes actives</span>
@@ -1198,6 +1217,7 @@ function renderCalendarView() {
   renderAvgDelivery();
   renderStreak();
   renderToday();
+  renderTodayHero();
   updateFaviconAndTitle();
   renderGreeting();
   renderRecords();
@@ -1359,6 +1379,7 @@ function renderBoard() {
   renderAvgDelivery();
   renderStreak();
   renderToday();
+  renderTodayHero();
   updateFaviconAndTitle();
   renderGreeting();
   renderRecords();
@@ -1406,6 +1427,7 @@ function renderList() {
   renderAvgDelivery();
   renderStreak();
   renderToday();
+  renderTodayHero();
   updateFaviconAndTitle();
   renderGreeting();
   renderRecords();
@@ -1657,7 +1679,56 @@ function renderToday() {
   });
 }
 
-// ---------- Favicon / titre dynamiques ----------
+function renderTodayHero() {
+  const hero = document.getElementById('today-hero');
+  const activeOrders = orders.filter(o => !o.archived && o.status !== 'livre');
+
+  const withDeadline = activeOrders
+    .filter(o => o.deadline)
+    .map(o => ({ o, diff: daysUntil(o.deadline) }));
+
+  const overdue = withDeadline.filter(x => x.diff < 0).sort((a, b) => a.diff - b.diff);
+  const soon = withDeadline.filter(x => x.diff >= 0 && x.diff <= 3).sort((a, b) => a.diff - b.diff);
+  const urgent = activeOrders.filter(o => o.priority === 'urgente');
+
+  hero.classList.remove('is-overdue', 'is-soon', 'is-calm');
+  let mainText, subText, target = null;
+
+  if (overdue.length > 0) {
+    const top = overdue[0].o;
+    hero.classList.add('is-overdue');
+    mainText = `${top.client} - en retard de ${Math.abs(overdue[0].diff)}j`;
+    subText = overdue.length > 1 ? `+ ${overdue.length - 1} autre(s) commande(s) en retard` : `${top.type} - deadline ${formatDate(top.deadline)}`;
+    target = top.id;
+  } else if (soon.length > 0) {
+    const top = soon[0].o;
+    const diff = soon[0].diff;
+    const label = diff === 0 ? "Aujourd'hui" : diff === 1 ? 'Demain' : `Dans ${diff}j`;
+    hero.classList.add('is-soon');
+    mainText = `${top.client} - ${label}`;
+    subText = `${top.type} - deadline ${formatDate(top.deadline)}`;
+    target = top.id;
+  } else if (urgent.length > 0) {
+    const top = urgent[0];
+    mainText = `${top.client} - marquee urgente`;
+    subText = `${top.type} - pas de deadline proche mais priorite elevee`;
+    target = top.id;
+  } else if (activeOrders.length > 0) {
+    hero.classList.add('is-calm');
+    mainText = 'Rien d\'urgent aujourd\'hui.';
+    subText = `${activeOrders.length} commande${activeOrders.length > 1 ? 's' : ''} active${activeOrders.length > 1 ? 's' : ''}, aucune deadline pressante.`;
+  } else {
+    hero.classList.add('is-calm');
+    mainText = 'Aucune commande active.';
+    subText = 'Profite-en, ou lance une nouvelle commande.';
+  }
+
+  document.getElementById('today-hero-main').textContent = mainText;
+  document.getElementById('today-hero-sub').textContent = subText;
+  hero.onclick = target ? () => openEditModal(target) : null;
+}
+
+
 function updateFaviconAndTitle() {
   const overdueCount = orders.filter(o => deadlineState(o) === 'overdue').length;
   const activeCount = orders.filter(o => o.status !== 'livre').length;
