@@ -3051,7 +3051,7 @@ function checkShareView() {
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     const swSource = `
-      const CACHE_NAME = 'commissions-cache-v1';
+      const CACHE_NAME = 'commissions-cache-v2';
       self.addEventListener('install', (event) => {
         self.skipWaiting();
       });
@@ -3066,18 +3066,15 @@ if ('serviceWorker' in navigator) {
       self.addEventListener('fetch', (event) => {
         if (event.request.method !== 'GET') return;
         event.respondWith(
-          caches.match(event.request).then((cached) => {
-            const fetchPromise = fetch(event.request)
-              .then((networkResponse) => {
-                if (networkResponse && networkResponse.status === 200) {
-                  const clone = networkResponse.clone();
-                  caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
-                }
-                return networkResponse;
-              })
-              .catch(() => cached);
-            return cached || fetchPromise;
-          })
+          fetch(event.request)
+            .then((networkResponse) => {
+              if (networkResponse && networkResponse.status === 200) {
+                const clone = networkResponse.clone();
+                caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+              }
+              return networkResponse;
+            })
+            .catch(() => caches.match(event.request))
         );
       });
     `;
