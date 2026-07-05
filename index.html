@@ -1769,13 +1769,64 @@ function renderWeekdayStats() {
 }
 
 // ---------- Message d'accueil + meteo ironique ----------
+const GREETINGS_NUIT = [
+  'Encore debout ?',
+  'Le monde dort, toi tu bosses.',
+  'Mode nocturne active.',
+  'Insomnie ou deadline ?'
+];
+const GREETINGS_MATIN = [
+  'Bonjour !',
+  'Debout, le studio t\'attend.',
+  'Nouveau jour, nouvelles commandes.',
+  'Cafe puis commandes, dans cet ordre.'
+];
+const GREETINGS_APREM = [
+  'Bon apres-midi !',
+  'La journee avance, toi aussi.',
+  'Mi-parcours de la journee, courage.',
+  'Ca roule ?'
+];
+const GREETINGS_SOIR = [
+  'Bonsoir !',
+  'La journee se termine en beaute.',
+  'Encore un peu d\'energie pour ce soir ?',
+  'Dernier sprint de la journee.'
+];
+const WEEKDAY_FLAVOR = [
+  'Dimanche, mais le studio ne dort jamais.',
+  'Lundi, on repart du bon pied.',
+  'Mardi, deja dans le rythme.',
+  'Mercredi, mi-semaine.',
+  'Jeudi, la ligne d\'arrivee approche.',
+  'Vendredi, dernier effort avant le week-end.',
+  'Samedi, meme les week-ends comptent.'
+];
+
+function dayOfYear(d) {
+  const start = new Date(d.getFullYear(), 0, 0);
+  return Math.floor((d - start) / 86400000);
+}
+
+function seededPick(arr, seed) {
+  const x = Math.abs(Math.sin(seed) * 10000);
+  const idx = Math.floor((x - Math.floor(x)) * arr.length);
+  return arr[idx];
+}
+
 function renderGreeting() {
-  const hour = new Date().getHours();
-  let greet;
-  if (hour < 6) greet = 'Encore debout ?';
-  else if (hour < 12) greet = 'Bonjour !';
-  else if (hour < 18) greet = 'Bon apres-midi !';
-  else greet = 'Bonsoir !';
+  const now = new Date();
+  const hour = now.getHours();
+  const seed = dayOfYear(now) * 4 + Math.floor(hour / 6);
+
+  let pool;
+  if (hour < 6) pool = GREETINGS_NUIT;
+  else if (hour < 12) pool = GREETINGS_MATIN;
+  else if (hour < 18) pool = GREETINGS_APREM;
+  else pool = GREETINGS_SOIR;
+
+  const greet = seededPick(pool, seed);
+  const dayFlavor = WEEKDAY_FLAVOR[now.getDay()];
 
   const activeCount = orders.filter(o => o.status !== 'livre').length;
   let weather;
@@ -1784,7 +1835,7 @@ function renderGreeting() {
   else if (activeCount <= 5) weather = 'pluie de commandes \u2614';
   else weather = 'tempete de commandes \u26c8\ufe0f';
 
-  document.getElementById('greeting').textContent = `${greet} Aujourd'hui : ${weather}`;
+  document.getElementById('greeting').textContent = `${greet} ${dayFlavor} Aujourd'hui : ${weather}`;
 }
 
 // ---------- Records perso ----------
