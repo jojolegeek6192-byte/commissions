@@ -142,17 +142,7 @@ body {
 
 .toolbar { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; align-items: center; }
 .archive-toggle { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-secondary); white-space: nowrap; }
-.adv-filters-panel {
-  display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-end; padding: 14px 16px; margin-bottom: 16px;
-  border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface-alt);
-}
-.adv-filters-panel .field { margin: 0; min-width: 140px; }
-.adv-filters-panel .field label { font-size: 11px; color: var(--text-muted); }
 .card.is-archived, .list-row.is-archived { opacity: 0.55; }
-.card.is-pinned { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
-.card-pin { background: none; border: none; cursor: pointer; font-size: 13px; opacity: 0.35; padding: 2px 4px; }
-.card-pin:hover { opacity: 0.8; }
-.card-pin.active { opacity: 1; }
 .toolbar input[type="text"], .toolbar select {
   padding: 9px 12px; border-radius: 7px; border: 1px solid var(--border);
   font-size: 13px; font-family: var(--font-body); background: var(--surface); color: var(--text);
@@ -306,7 +296,6 @@ body {
 
 /* Devis / recu imprimable */
 #print-devis { display: none; }
-#print-bilan-annuel { display: none; }
 @media print {
   body * { visibility: hidden; }
   .print-active, .print-active * { visibility: visible; }
@@ -316,18 +305,6 @@ body {
 .devis-sub { font-size: 12px; color: #666; margin-bottom: 24px; }
 .devis-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #ddd; font-size: 14px; }
 .devis-total { font-weight: 700; font-size: 16px; margin-top: 16px; }
-.devis-pro-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
-.devis-pro-brand { font-family: var(--font-head); font-size: 26px; font-weight: 700; letter-spacing: 0.02em; margin: 0; }
-.devis-pro-tagline { font-size: 11px; color: #666; margin: 4px 0 0; }
-.devis-pro-meta { text-align: right; font-size: 12px; color: #444; }
-.devis-pro-meta p { margin: 0 0 3px; }
-.devis-pro-divider { height: 3px; background: #111; margin: 14px 0 20px; }
-.devis-pro-total-box {
-  display: flex; justify-content: space-between; align-items: center; margin-top: 18px;
-  padding: 14px 18px; background: #f4f4f4; border: 1px solid #ddd; border-radius: 6px;
-  font-size: 18px; font-weight: 700;
-}
-.devis-pro-footer { margin-top: 30px; font-size: 11px; color: #888; text-align: center; }
 .avg-title { font-size: 12px; color: var(--text-muted); margin: 0 0 12px; }
 .avg-list { display: flex; gap: 20px; flex-wrap: wrap; }
 .avg-item { display: flex; flex-direction: column; gap: 2px; }
@@ -340,18 +317,6 @@ body {
 }
 #notes-textarea:focus { outline: none; border-color: var(--text); }
 .notes-saved { font-size: 11px; color: var(--text-muted); margin-top: 8px; }
-#client-detail-notes {
-  width: 100%; min-height: 70px; border: 1px solid var(--border); border-radius: 8px;
-  padding: 10px; font-family: var(--font-body); font-size: 13px; background: var(--surface); color: var(--text); resize: vertical;
-}
-#client-detail-notes:focus { outline: none; border-color: var(--text); }
-.client-detail-stats { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 6px; }
-.client-detail-stat { font-size: 12px; color: var(--text-muted); }
-.client-detail-stat strong { display: block; font-size: 18px; color: var(--text); font-family: 'Space Grotesk', sans-serif; }
-.client-detail-order-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); cursor: pointer; font-size: 12px; }
-.client-detail-order-row:last-child { border-bottom: none; }
-.client-detail-order-row:hover { color: var(--accent); }
-.client-vip-badge { font-size: 10px; padding: 2px 6px; border-radius: 4px; background: var(--accent); color: var(--accent-contrast); margin-left: 6px; vertical-align: middle; }
 
 .backup-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); }
 .backup-row:last-child { border-bottom: none; }
@@ -577,7 +542,6 @@ body {
           <button id="group-client">Par client</button>
         </div>
         <button id="columns-btn" class="btn btn-ghost">Colonnes</button>
-        <button id="adv-filters-btn" class="btn btn-ghost">Filtres avances</button>
         <label class="archive-toggle"><input type="checkbox" id="show-archived-toggle" /> Voir archivees</label>
         <button id="bulk-archive-btn" class="btn btn-ghost">Archiver les livrees</button>
         <div class="seg">
@@ -585,26 +549,6 @@ body {
           <button id="view-list">Liste</button>
           <button id="view-calendar">Calendrier</button>
         </div>
-      </div>
-
-      <div class="adv-filters-panel hidden" id="adv-filters-panel">
-        <div class="field">
-          <label for="filter-date-from">Deadline apres le</label>
-          <input type="date" id="filter-date-from" />
-        </div>
-        <div class="field">
-          <label for="filter-date-to">Deadline avant le</label>
-          <input type="date" id="filter-date-to" />
-        </div>
-        <div class="field">
-          <label for="filter-amount-min">Montant min (R$)</label>
-          <input type="number" id="filter-amount-min" placeholder="0" />
-        </div>
-        <div class="field">
-          <label for="filter-amount-max">Montant max (R$)</label>
-          <input type="number" id="filter-amount-max" placeholder="illimite" />
-        </div>
-        <button id="adv-filters-reset" class="btn btn-ghost">Reinitialiser</button>
       </div>
 
       <section class="board" id="board"></section>
@@ -650,14 +594,6 @@ body {
           <p style="font-size:12px; color:var(--text-muted); margin:0;">Export PDF du mois en cours : commandes, revenus, repartition</p>
         </div>
         <button id="export-bilan-btn" class="btn btn-ghost">Exporter le bilan (PDF)</button>
-      </div>
-
-      <div class="records-card" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
-        <div>
-          <p class="records-title" style="margin:0 0 4px;">Bilan annuel</p>
-          <p style="font-size:12px; color:var(--text-muted); margin:0;">Export PDF de l'annee en cours : revenu par mois, top clients, repartition</p>
-        </div>
-        <button id="export-bilan-annuel-btn" class="btn btn-ghost">Exporter le bilan annuel (PDF)</button>
       </div>
     </div>
 
@@ -811,53 +747,14 @@ body {
     <div id="bilan-list"></div>
   </div>
 
-  <div id="print-bilan-annuel">
-    <div class="devis-pro-header">
-      <div>
-        <p class="devis-pro-brand">JB STUDIO</p>
-        <p class="devis-pro-tagline">Commissions Roblox &mdash; Builds &middot; Scripts &middot; UI &middot; Systemes</p>
-      </div>
-      <div class="devis-pro-meta">
-        <p>Bilan annuel</p>
-        <p id="annuel-period"></p>
-      </div>
-    </div>
-    <div class="devis-pro-divider"></div>
-    <div class="devis-row"><span>Commandes livrees sur l'annee</span><span id="annuel-count"></span></div>
-    <div class="devis-row devis-total"><span>Revenu total encaisse</span><span id="annuel-total"></span></div>
-    <div class="devis-row"><span>Comparaison annee precedente</span><span id="annuel-compare"></span></div>
-    <p class="bilan-section-title">Revenu par mois</p>
-    <div id="annuel-months"></div>
-    <p class="bilan-section-title">Repartition par type</p>
-    <div id="annuel-types"></div>
-    <p class="bilan-section-title">Top clients</p>
-    <div id="annuel-clients"></div>
-    <p class="devis-pro-footer">Genere depuis Commissions &middot; JB Studio</p>
-  </div>
-
   <div id="print-devis">
-    <div class="devis-pro-header">
-      <div>
-        <p class="devis-pro-brand">JB STUDIO</p>
-        <p class="devis-pro-tagline">Commissions Roblox &mdash; Builds &middot; Scripts &middot; UI &middot; Systemes</p>
-      </div>
-      <div class="devis-pro-meta">
-        <p id="print-devis-number"></p>
-        <p id="print-date"></p>
-      </div>
-    </div>
-    <div class="devis-pro-divider"></div>
-    <p class="bilan-section-title">Client</p>
-    <div class="devis-row"><span>Nom</span><span id="print-client"></span></div>
-    <p class="bilan-section-title">Details de la commande</p>
+    <p class="devis-header">Devis / Recu</p>
+    <p class="devis-sub" id="print-date"></p>
+    <div class="devis-row"><span>Client</span><span id="print-client"></span></div>
     <div class="devis-row"><span>Type</span><span id="print-type"></span></div>
     <div class="devis-row"><span>Description</span><span id="print-desc"></span></div>
     <div class="devis-row"><span>Deadline</span><span id="print-deadline"></span></div>
-    <div class="devis-pro-total-box">
-      <span>Montant total</span>
-      <span id="print-price"></span>
-    </div>
-    <p class="devis-pro-footer">Merci pour votre confiance &middot; JB Studio</p>
+    <div class="devis-row devis-total"><span>Montant</span><span id="print-price"></span></div>
   </div>
 
   <div id="clients-overlay" class="modal-overlay hidden">
@@ -867,22 +764,6 @@ body {
         <button id="clients-close" class="icon-btn" aria-label="Fermer">&times;</button>
       </div>
       <div class="modal-body" id="clients-list"></div>
-    </div>
-  </div>
-
-  <div id="client-detail-overlay" class="modal-overlay hidden">
-    <div class="modal modal-wide">
-      <div class="modal-header">
-        <h2 id="client-detail-name">Client</h2>
-        <button id="client-detail-close" class="icon-btn" aria-label="Fermer">&times;</button>
-      </div>
-      <div class="modal-body">
-        <div id="client-detail-stats" class="client-detail-stats"></div>
-        <p class="data-section-title">Notes personnelles sur ce client</p>
-        <textarea id="client-detail-notes" rows="3" placeholder="Preferences, historique de relation, points d'attention..."></textarea>
-        <p class="data-section-title">Ses commandes</p>
-        <div id="client-detail-orders"></div>
-      </div>
     </div>
   </div>
 
@@ -1139,10 +1020,6 @@ function getFilteredOrders() {
   const search = document.getElementById('search-input').value.trim().toLowerCase();
   const type = document.getElementById('filter-type').value;
   const showArchived = document.getElementById('show-archived-toggle').checked;
-  const dateFrom = document.getElementById('filter-date-from').value;
-  const dateTo = document.getElementById('filter-date-to').value;
-  const amountMin = parseFloat(document.getElementById('filter-amount-min').value);
-  const amountMax = parseFloat(document.getElementById('filter-amount-max').value);
   return orders.filter(o => {
     if (!showArchived && o.archived) return false;
     if (type && o.type !== type) return false;
@@ -1150,29 +1027,19 @@ function getFilteredOrders() {
       const hay = (o.client + ' ' + o.description).toLowerCase();
       if (!hay.includes(search)) return false;
     }
-    if (dateFrom && (!o.deadline || o.deadline < dateFrom)) return false;
-    if (dateTo && (!o.deadline || o.deadline > dateTo)) return false;
-    if (!isNaN(amountMin) && extractNumber(o.price) < amountMin) return false;
-    if (!isNaN(amountMax) && extractNumber(o.price) > amountMax) return false;
     return true;
   });
 }
 
 function sortComparator() {
   const mode = document.getElementById('sort-select').value;
-  let base;
-  if (mode === 'price-desc') base = (a, b) => extractNumber(b.price) - extractNumber(a.price);
-  else if (mode === 'price-asc') base = (a, b) => extractNumber(a.price) - extractNumber(b.price);
-  else if (mode === 'client-asc') base = (a, b) => a.client.localeCompare(b.client);
-  else base = (a, b) => {
+  if (mode === 'price-desc') return (a, b) => extractNumber(b.price) - extractNumber(a.price);
+  if (mode === 'price-asc') return (a, b) => extractNumber(a.price) - extractNumber(b.price);
+  if (mode === 'client-asc') return (a, b) => a.client.localeCompare(b.client);
+  return (a, b) => {
     if (!a.deadline) return 1;
     if (!b.deadline) return -1;
     return a.deadline.localeCompare(b.deadline);
-  };
-  return (a, b) => {
-    const pinDiff = (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0);
-    if (pinDiff !== 0) return pinDiff;
-    return base(a, b);
   };
 }
 
@@ -1403,7 +1270,7 @@ function buildCardHTML(o, opts) {
   const canRight = idx > -1 && idx < STATUSES.length - 1;
   const statusLabel = (STATUSES.find(s => s.key === o.status) || {}).label || o.status;
   return `
-    <div class="card${alert === 'overdue' ? ' overdue' : alert === 'soon' ? ' soon' : ''}${o.archived ? ' is-archived' : ''}${o.pinned ? ' is-pinned' : ''}" data-id="${o.id}" draggable="${opts.draggable !== false}">
+    <div class="card${alert === 'overdue' ? ' overdue' : alert === 'soon' ? ' soon' : ''}${o.archived ? ' is-archived' : ''}" data-id="${o.id}" draggable="${opts.draggable !== false}">
       <div class="card-top">
         <span class="card-client">
           ${o.priority && o.priority !== 'normal' ? `<span class="priority-dot ${o.priority}" title="Priorite ${o.priority}"></span>` : ''}
@@ -1411,7 +1278,6 @@ function buildCardHTML(o, opts) {
           ${o.contact ? `<a class="contact-link" href="${escapeHtml(o.contact)}" target="_blank" rel="noopener" onclick="event.stopPropagation();">contact</a>` : ''}
           ${o.archived ? '<span class="card-tag">Archivee</span>' : ''}
         </span>
-        <button class="card-pin${o.pinned ? ' active' : ''}" data-pin="${o.id}" aria-label="Epingler" title="Epingler">&#128204;</button>
         <button class="card-del" data-del="${o.id}" aria-label="Supprimer">&times;</button>
       </div>
       <div class="card-tags">
@@ -1571,34 +1437,11 @@ function renderList() {
   renderGlobalHistoryLog();
 }
 
-function playDeliverySound() {
-  try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    const notes = [523.25, 659.25, 783.99];
-    notes.forEach((freq, i) => {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = 'sine';
-      osc.frequency.value = freq;
-      const start = ctx.currentTime + i * 0.09;
-      gain.gain.setValueAtTime(0, start);
-      gain.gain.linearRampToValueAtTime(0.12, start + 0.02);
-      gain.gain.exponentialRampToValueAtTime(0.001, start + 0.35);
-      osc.connect(gain);
-      gain.connect(ctx.destination);
-      osc.start(start);
-      osc.stop(start + 0.4);
-    });
-    setTimeout(() => ctx.close(), 1000);
-  } catch (e) { /* audio non supporte, pas grave */ }
-}
-
 function setOrderStatus(order, newKey) {
   order.status = newKey;
   if (newKey === 'livre' && !order.paidAt) {
     order.paidAt = new Date().toISOString();
     fireConfetti();
-    playDeliverySound();
     notifyDiscord(`Commande livree : ${order.client} (${order.type}) - ${order.price || '?'} ${currencyLabelOf(order)}`);
   }
   save();
@@ -1610,17 +1453,6 @@ function attachRowEvents() {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
       orders = orders.filter(o => o.id !== btn.dataset.del);
-      save();
-      render();
-    });
-  });
-
-  document.querySelectorAll('[data-pin]').forEach(btn => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const order = orders.find(o => o.id === btn.dataset.pin);
-      if (!order) return;
-      order.pinned = !order.pinned;
       save();
       render();
     });
@@ -2281,20 +2113,6 @@ document.getElementById('bulk-archive-btn').addEventListener('click', () => {
   save();
   render();
 });
-
-const advFiltersBtn = document.getElementById('adv-filters-btn');
-const advFiltersPanel = document.getElementById('adv-filters-panel');
-advFiltersBtn.addEventListener('click', () => advFiltersPanel.classList.toggle('hidden'));
-['filter-date-from', 'filter-date-to', 'filter-amount-min', 'filter-amount-max'].forEach(id => {
-  document.getElementById(id).addEventListener('input', render);
-});
-document.getElementById('adv-filters-reset').addEventListener('click', () => {
-  document.getElementById('filter-date-from').value = '';
-  document.getElementById('filter-date-to').value = '';
-  document.getElementById('filter-amount-min').value = '';
-  document.getElementById('filter-amount-max').value = '';
-  render();
-});
 document.getElementById('sort-select').value = localStorage.getItem(SORT_KEY) || 'deadline';
 document.getElementById('sort-select').addEventListener('change', (e) => {
   localStorage.setItem(SORT_KEY, e.target.value);
@@ -2584,12 +2402,11 @@ function renderClients() {
 
   list.forEach(g => {
     const totalPaid = g.orders.filter(o => o.status === 'livre').reduce((s, o) => s + extractNumber(o.price), 0);
-    const isVip = g.orders.length >= 3;
     const row = document.createElement('div');
     row.className = 'client-row';
     row.innerHTML = `
       <div>
-        <div class="client-name">${escapeHtml(g.name)}${isVip ? '<span class="client-vip-badge">VIP</span>' : ''}</div>
+        <div class="client-name">${escapeHtml(g.name)}</div>
         <div class="client-sub">${g.orders.length} commande${g.orders.length > 1 ? 's' : ''}</div>
       </div>
       <div>
@@ -2597,70 +2414,14 @@ function renderClients() {
         <div class="client-total-sub">encaisse</div>
       </div>
     `;
-    row.addEventListener('click', () => openClientDetail(g.name));
+    row.addEventListener('click', () => {
+      document.getElementById('search-input').value = g.name;
+      clientsOverlay.classList.add('hidden');
+      render();
+    });
     container.appendChild(row);
   });
 }
-
-const CLIENT_NOTES_KEY = 'commissions_client_notes';
-function loadClientNotes() {
-  try { return JSON.parse(localStorage.getItem(CLIENT_NOTES_KEY)) || {}; } catch (e) { return {}; }
-}
-function saveClientNotes(notes) {
-  localStorage.setItem(CLIENT_NOTES_KEY, JSON.stringify(notes));
-}
-
-const clientDetailOverlay = document.getElementById('client-detail-overlay');
-let currentClientKey = null;
-
-function openClientDetail(name) {
-  currentClientKey = name.trim().toLowerCase();
-  const clientOrders = orders.filter(o => o.client.trim().toLowerCase() === currentClientKey);
-  const totalPaid = clientOrders.filter(o => o.status === 'livre').reduce((s, o) => s + extractNumber(o.price), 0);
-  const isVip = clientOrders.length >= 3;
-
-  document.getElementById('client-detail-name').innerHTML = `${escapeHtml(name)}${isVip ? '<span class="client-vip-badge">VIP</span>' : ''}`;
-  document.getElementById('client-detail-stats').innerHTML = `
-    <div class="client-detail-stat"><strong>${clientOrders.length}</strong>commande${clientOrders.length > 1 ? 's' : ''}</div>
-    <div class="client-detail-stat"><strong>${totalPaid.toLocaleString('fr-FR')} R$</strong>encaisse</div>
-  `;
-
-  const notes = loadClientNotes();
-  document.getElementById('client-detail-notes').value = notes[currentClientKey] || '';
-
-  const ordersContainer = document.getElementById('client-detail-orders');
-  if (clientOrders.length === 0) {
-    ordersContainer.innerHTML = '<p class="chart-empty">Aucune commande</p>';
-  } else {
-    ordersContainer.innerHTML = clientOrders
-      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-      .map(o => `
-        <div class="client-detail-order-row" data-open-order="${o.id}">
-          <span>${escapeHtml(o.type)} - ${escapeHtml(o.description).slice(0, 40)}</span>
-          <span>${o.price ? escapeHtml(o.price) + ' ' + ((o.currency || 'RBX') === 'EUR' ? '\u20ac' : 'RBX') : '-'}</span>
-        </div>
-      `).join('');
-    ordersContainer.querySelectorAll('[data-open-order]').forEach(row => {
-      row.addEventListener('click', () => {
-        clientDetailOverlay.classList.add('hidden');
-        clientsOverlay.classList.add('hidden');
-        openEditModal(row.dataset.openOrder);
-      });
-    });
-  }
-
-  clientsOverlay.classList.add('hidden');
-  clientDetailOverlay.classList.remove('hidden');
-}
-
-document.getElementById('client-detail-close').addEventListener('click', () => clientDetailOverlay.classList.add('hidden'));
-clientDetailOverlay.addEventListener('click', (e) => { if (e.target === clientDetailOverlay) clientDetailOverlay.classList.add('hidden'); });
-document.getElementById('client-detail-notes').addEventListener('input', (e) => {
-  if (!currentClientKey) return;
-  const notes = loadClientNotes();
-  notes[currentClientKey] = e.target.value;
-  saveClientNotes(notes);
-});
 
 // ---------- Modal ajout / edition ----------
 const modalOverlay = document.getElementById('modal-overlay');
@@ -2842,8 +2603,6 @@ printDevisBtn.addEventListener('click', () => {
   const o = orders.find(x => x.id === editingId);
   if (!o) return;
   const cur = currencyLabelOf(o);
-  const docNumber = `N\u00b0 JB-${(o.createdAt || new Date().toISOString()).slice(0, 10).replace(/-/g, '')}-${o.id.slice(-4).toUpperCase()}`;
-  document.getElementById('print-devis-number').textContent = docNumber;
   document.getElementById('print-date').textContent = `Genere le ${new Date().toLocaleDateString('fr-FR')}`;
   document.getElementById('print-client').textContent = o.client;
   document.getElementById('print-type').textContent = o.type;
@@ -2851,7 +2610,6 @@ printDevisBtn.addEventListener('click', () => {
   document.getElementById('print-deadline').textContent = o.deadline ? formatDate(o.deadline) : '-';
   document.getElementById('print-price').textContent = o.price ? `${o.price} ${cur}` : '-';
   document.getElementById('print-bilan').classList.remove('print-active');
-  document.getElementById('print-bilan-annuel').classList.remove('print-active');
   document.getElementById('print-devis').classList.add('print-active');
   window.print();
 });
@@ -2893,56 +2651,7 @@ document.getElementById('export-bilan-btn').addEventListener('click', () => {
     : '<p style="font-size:12px; color:#888;">Aucune commande livree ce mois-ci</p>';
 
   document.getElementById('print-devis').classList.remove('print-active');
-  document.getElementById('print-bilan-annuel').classList.remove('print-active');
   document.getElementById('print-bilan').classList.add('print-active');
-  window.print();
-});
-
-// ---------- Export bilan annuel (PDF via impression) ----------
-document.getElementById('export-bilan-annuel-btn').addEventListener('click', () => {
-  const now = new Date();
-  const monthNamesShort = ['Jan', 'Fev', 'Mar', 'Avr', 'Mai', 'Jun', 'Jul', 'Aou', 'Sep', 'Oct', 'Nov', 'Dec'];
-  const year = now.getFullYear();
-
-  const paidThisYear = orders.filter((o) => o.status === 'livre' && o.paidAt && new Date(o.paidAt).getFullYear() === year);
-  const total = paidThisYear.reduce((s, o) => s + amountInRBX(o), 0);
-
-  const paidLastYear = orders.filter((o) => o.status === 'livre' && o.paidAt && new Date(o.paidAt).getFullYear() === year - 1);
-  const totalLast = paidLastYear.reduce((s, o) => s + amountInRBX(o), 0);
-
-  document.getElementById('annuel-period').textContent = `Annee ${year}`;
-  document.getElementById('annuel-count').textContent = String(paidThisYear.length);
-  document.getElementById('annuel-total').textContent = `${total.toLocaleString('fr-FR')} RBX`;
-
-  let compareText = 'Pas de donnees l\'annee precedente';
-  if (totalLast > 0) {
-    const change = ((total - totalLast) / totalLast) * 100;
-    compareText = `${change >= 0 ? '+' : ''}${change.toFixed(0)}% vs annee precedente`;
-  }
-  document.getElementById('annuel-compare').textContent = compareText;
-
-  const byMonth = new Array(12).fill(0);
-  paidThisYear.forEach((o) => { byMonth[new Date(o.paidAt).getMonth()] += amountInRBX(o); });
-  document.getElementById('annuel-months').innerHTML = byMonth
-    .map((val, i) => `<div class="bilan-type-row"><span>${monthNamesShort[i]}</span><span>${val.toLocaleString('fr-FR')} RBX</span></div>`)
-    .join('');
-
-  const byType = {};
-  paidThisYear.forEach((o) => { byType[o.type] = (byType[o.type] || 0) + amountInRBX(o); });
-  document.getElementById('annuel-types').innerHTML = Object.keys(byType).length
-    ? Object.entries(byType).map(([type, val]) => `<div class="bilan-type-row"><span>${escapeHtml(type)}</span><span>${val.toLocaleString('fr-FR')} RBX</span></div>`).join('')
-    : '<p style="font-size:12px; color:#888;">Aucune commande livree cette annee</p>';
-
-  const byClient = {};
-  paidThisYear.forEach((o) => { byClient[o.client] = (byClient[o.client] || 0) + amountInRBX(o); });
-  const topClients = Object.entries(byClient).sort((a, b) => b[1] - a[1]).slice(0, 5);
-  document.getElementById('annuel-clients').innerHTML = topClients.length
-    ? topClients.map(([client, val]) => `<div class="bilan-type-row"><span>${escapeHtml(client)}</span><span>${val.toLocaleString('fr-FR')} RBX</span></div>`).join('')
-    : '<p style="font-size:12px; color:#888;">Aucune commande livree cette annee</p>';
-
-  document.getElementById('print-devis').classList.remove('print-active');
-  document.getElementById('print-bilan').classList.remove('print-active');
-  document.getElementById('print-bilan-annuel').classList.add('print-active');
   window.print();
 });
 
@@ -3301,7 +3010,7 @@ document.addEventListener('keydown', (e) => {
   const typing = tag === 'input' || tag === 'textarea' || tag === 'select' || e.target.isContentEditable;
 
   if (e.key === 'Escape') {
-    [modalOverlay, clientsOverlay, clientDetailOverlay, notesOverlay, dataOverlay, templatesOverlay, columnsOverlay].forEach(m => m.classList.add('hidden'));
+    [modalOverlay, clientsOverlay, notesOverlay, dataOverlay, templatesOverlay, columnsOverlay].forEach(m => m.classList.add('hidden'));
     closeFocusModal();
     return;
   }
