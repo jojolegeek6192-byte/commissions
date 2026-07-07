@@ -102,6 +102,42 @@ body {
 .today-hero-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); }
 .today-hero-main { font-size: 22px; font-weight: 600; margin: 6px 0 4px; font-family: 'Space Grotesk', sans-serif; }
 .today-hero-sub { font-size: 13px; color: var(--text-secondary); }
+.noover-streak-badge {
+  display: inline-block; font-size: 12px; font-weight: 600; color: var(--accent);
+  background: var(--surface-alt); border: 1px solid var(--border); border-radius: 20px;
+  padding: 4px 12px; margin-bottom: 14px;
+}
+.easter-egg-toast {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+  background: var(--text); color: var(--bg); padding: 14px 22px; border-radius: 10px;
+  font-size: 14px; font-weight: 600; z-index: 100; box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+  animation: eggFadeIn 0.3s ease;
+}
+@keyframes eggFadeIn { from { opacity: 0; transform: translateX(-50%) translateY(10px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+.record-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 90;
+  display: flex; align-items: center; justify-content: center; padding: 20px;
+}
+.record-overlay-content {
+  background: var(--surface); border-radius: 16px; padding: 40px 36px; text-align: center; max-width: 380px;
+}
+.record-overlay-emoji { font-size: 48px; margin: 0 0 12px; }
+.record-overlay-title { font-family: 'Space Grotesk', sans-serif; font-size: 22px; font-weight: 700; margin: 0 0 10px; }
+.record-overlay-text { font-size: 14px; color: var(--text-secondary); margin: 0 0 22px; }
+.pin-lock-overlay {
+  position: fixed; inset: 0; background: var(--bg); z-index: 200;
+  display: flex; align-items: center; justify-content: center;
+}
+.pin-lock-content { text-align: center; max-width: 280px; width: 100%; padding: 20px; }
+.pin-lock-title { font-family: 'Space Grotesk', sans-serif; font-size: 22px; font-weight: 700; margin: 0 0 4px; }
+.pin-lock-sub { font-size: 13px; color: var(--text-muted); margin: 0 0 20px; }
+#pin-lock-input {
+  width: 100%; text-align: center; font-size: 22px; letter-spacing: 0.3em; padding: 12px;
+  border: 1px solid var(--border); border-radius: 8px; margin-bottom: 14px;
+  background: var(--surface); color: var(--text); font-family: var(--font-body);
+}
+#pin-lock-input:focus { outline: none; border-color: var(--accent); }
+.pin-lock-error { color: #c23b3b; font-size: 12px; margin-top: 10px; }
 .overload-banner {
   border: 1px solid #b8860b; background: rgba(184,134,11,0.08); border-radius: var(--radius);
   padding: 14px 18px; margin-bottom: 20px; font-size: 13px; color: var(--text);
@@ -255,6 +291,11 @@ body {
 .records-card { border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 20px; margin-bottom: 24px; background: var(--surface); }
 .records-title { font-size: 12px; color: var(--text-muted); margin: 0 0 12px; }
 .records-list { display: flex; gap: 24px; flex-wrap: wrap; }
+.help-icon {
+  display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px;
+  border-radius: 50%; border: 1px solid var(--text-faint); color: var(--text-muted); font-size: 10px;
+  margin-left: 6px; cursor: help; vertical-align: middle;
+}
 .record-item { display: flex; flex-direction: column; gap: 2px; }
 .record-item-label { font-size: 11px; color: var(--text-muted); }
 .record-item-value { font-family: var(--font-head); font-size: 15px; font-weight: 600; }
@@ -439,6 +480,14 @@ body {
 
 /* Tags libres */
 .tags-input-hint { font-size: 11px; color: var(--text-faint); margin-top: 4px; }
+.milestone-row { display: flex; align-items: center; gap: 8px; padding: 6px 0; }
+.milestone-row input[type="checkbox"] { width: 16px; height: 16px; }
+.milestone-row span { flex: 1; font-size: 13px; }
+.milestone-row span.done { text-decoration: line-through; color: var(--text-muted); }
+.milestone-del { background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 16px; padding: 0 6px; }
+.milestone-del:hover { color: #c23b3b; }
+.milestone-progress-track { height: 4px; border-radius: 2px; background: var(--chip-bg); overflow: hidden; margin: 6px 0; }
+.milestone-progress-fill { height: 100%; background: var(--accent); }
 
 /* Historique des modifications */
 .history-toggle-row { display: flex; justify-content: flex-end; margin-bottom: 4px; }
@@ -493,6 +542,16 @@ body {
 </head>
 <body>
 
+  <div id="pin-lock-overlay" class="pin-lock-overlay hidden">
+    <div class="pin-lock-content">
+      <p class="pin-lock-title">Commissions</p>
+      <p class="pin-lock-sub">Entre ton code pour continuer</p>
+      <input type="password" id="pin-lock-input" inputmode="numeric" maxlength="8" autocomplete="off" />
+      <button id="pin-lock-submit" class="btn btn-primary">Deverrouiller</button>
+      <p class="pin-lock-error hidden" id="pin-lock-error">Code incorrect</p>
+    </div>
+  </div>
+
   <div id="share-root" class="hidden">
     <div class="share-view">
       <div class="share-card" id="share-card"></div>
@@ -503,7 +562,7 @@ body {
   <div id="app-root">
   <header class="topbar">
     <div style="display:flex; align-items:center;">
-      <span class="logo">Commissions</span>
+      <span class="logo" id="app-logo">Commissions</span>
       <span class="streak-badge" id="streak-badge"></span>
     </div>
     <div class="topbar-right">
@@ -527,9 +586,10 @@ body {
 
     <div class="tab-panel" id="tab-accueil">
       <p class="greeting" id="greeting"></p>
+      <span class="noover-streak-badge hidden" id="noover-streak-badge" title="Jours consecutifs sans aucune commande en retard"></span>
 
       <div class="today-hero" id="today-hero">
-        <span class="today-hero-label" id="today-hero-label">Priorite du jour</span>
+        <span class="today-hero-label" id="today-hero-label">Priorite du jour</span><span class="help-icon" title="La commande la plus urgente : en retard, deadline proche, ou marquee urgente">?</span>
         <p class="today-hero-main" id="today-hero-main"></p>
         <span class="today-hero-sub" id="today-hero-sub"></span>
       </div>
@@ -556,7 +616,7 @@ body {
       </section>
 
       <div class="goal-card">
-        <span class="goal-label">Objectif du mois</span>
+        <span class="goal-label">Objectif du mois</span><span class="help-icon" title="Ton objectif de revenu pour le mois en cours, avec comparaison au mois precedent">?</span>
         <div class="goal-bar-track"><div class="goal-bar-fill" id="goal-fill" style="width:0%;"></div></div>
         <span class="goal-value" id="goal-value">0 / 0 R$</span>
         <span class="goal-compare" id="goal-compare"></span>
@@ -590,9 +650,9 @@ body {
           <button id="group-status" class="active">Par statut</button>
           <button id="group-client">Par client</button>
         </div>
-        <button id="columns-btn" class="btn btn-ghost">Colonnes</button>
-        <button id="adv-filters-btn" class="btn btn-ghost">Filtres avances</button>
-        <label class="archive-toggle"><input type="checkbox" id="show-archived-toggle" /> Voir archivees</label>
+        <button id="columns-btn" class="btn btn-ghost" title="Renommer, ajouter, reordonner ou supprimer les colonnes du kanban">Colonnes</button>
+        <button id="adv-filters-btn" class="btn btn-ghost" title="Filtrer par plage de deadline et par montant">Filtres avances</button>
+        <label class="archive-toggle" title="Affiche aussi les commandes livrees que tu as archivees"><input type="checkbox" id="show-archived-toggle" /> Voir archivees</label>
         <button id="bulk-archive-btn" class="btn btn-ghost">Archiver les livrees</button>
         <div class="seg">
           <button id="view-kanban" class="active">Kanban</button>
@@ -639,6 +699,11 @@ body {
     </div>
 
     <div class="tab-panel hidden" id="tab-revenus">
+      <div class="records-card">
+        <p class="records-title">Tendances <span class="help-icon" title="Comparaison avec la meme periode l'an dernier, et projection de fin de mois selon ton rythme actuel">?</span></p>
+        <div class="records-list" id="trends-list"></div>
+      </div>
+
       <div class="records-card">
         <p class="records-title">Records perso</p>
         <div class="records-list" id="records-list"></div>
@@ -774,6 +839,18 @@ body {
           <input type="text" id="f-tags" placeholder="ex: prioritaire, ami, recurrent" />
           <p class="tags-input-hint">Separe les tags par une virgule</p>
         </div>
+        <div class="field">
+          <label for="f-time-spent">Temps passe (minutes, optionnel) <span class="help-icon" title="Utilise pour calculer ton taux horaire moyen dans l'onglet Revenus. Le mode focus peut aussi ajouter du temps automatiquement.">?</span></label>
+          <input type="number" id="f-time-spent" placeholder="ex: 120" min="0" />
+        </div>
+        <div class="field" id="milestones-field">
+          <label>Etapes / jalons (optionnel) <span class="help-icon" title="Decoupe la commande en etapes pour suivre l'avancement">?</span></label>
+          <div id="milestones-list"></div>
+          <div class="field-row" style="margin-top:8px;">
+            <input type="text" id="milestone-new-input" placeholder="ex: Whitebox termine" style="flex:1;" />
+            <button type="button" id="milestone-add-btn" class="btn btn-ghost">Ajouter</button>
+          </div>
+        </div>
         <div id="history-section" class="hidden">
           <div class="history-toggle-row">
             <button type="button" id="history-toggle-btn" class="goal-edit">Voir l'historique des modifications</button>
@@ -817,6 +894,7 @@ body {
       <button id="focus-start" class="btn btn-primary">Demarrer</button>
       <button id="focus-pause" class="btn btn-ghost hidden">Pause</button>
       <button id="focus-reset" class="btn btn-ghost">Reinitialiser</button>
+      <button id="focus-save-time" class="btn btn-ghost">Ajouter ce temps a la commande</button>
     </div>
   </div>
 
@@ -951,11 +1029,17 @@ body {
           <span style="font-size:13px; color:var(--text-secondary);" id="apikey-display"></span>
           <button class="goal-edit" id="apikey-edit-btn">Configurer la cle API</button>
         </div>
+        <p class="data-section-title">Verrouillage par code PIN</p>
+        <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+          <span style="font-size:13px; color:var(--text-secondary);" id="pin-display"></span>
+          <button class="goal-edit" id="pin-edit-btn">Configurer le code PIN</button>
+        </div>
         <p class="data-section-title">Export / Import</p>
         <div style="display:flex; gap:10px; flex-wrap:wrap;">
           <button id="export-btn" class="btn btn-ghost">Exporter en CSV</button>
           <label for="import-file" class="file-input-label">Importer un CSV</label>
           <input type="file" id="import-file" accept=".csv" class="hidden" />
+          <button id="export-ics-btn" class="btn btn-ghost" title="Exporte les deadlines de tes commandes actives dans un fichier a importer dans Google/Apple Calendar">Exporter les deadlines (.ics)</button>
         </div>
         <p class="data-section-title">Sauvegardes automatiques</p>
         <div id="backups-list"></div>
@@ -1031,6 +1115,15 @@ body {
   </div>
 
   <canvas id="confetti-canvas"></canvas>
+  <div id="easter-egg-toast" class="easter-egg-toast hidden"></div>
+  <div id="record-overlay" class="record-overlay hidden">
+    <div class="record-overlay-content">
+      <p class="record-overlay-emoji">🏆</p>
+      <p class="record-overlay-title">Nouveau record !</p>
+      <p class="record-overlay-text" id="record-overlay-text"></p>
+      <button id="record-overlay-close" class="btn btn-primary">Continuer</button>
+    </div>
+  </div>
   </div>
 
 <script>
@@ -1414,10 +1507,12 @@ function renderCalendarView() {
   renderStreak();
   renderToday();
   renderTodayHero();
+  updateNoOverdueStreak();
   renderOverloadBanner();
   updateFaviconAndTitle();
   renderGreeting();
   renderRecords();
+  renderTrends();
   renderHeatmap();
   renderTimeline();
   renderWeekdayStats();
@@ -1486,6 +1581,7 @@ function buildCardHTML(o, opts) {
         ${alert === 'soon' ? '<span class="card-tag alert-soon">Bientot</span>' : ''}
       </div>
       <p class="card-desc">${escapeHtml(o.description)}</p>
+      ${o.milestones && o.milestones.length > 0 ? `<div class="milestone-progress-track"><div class="milestone-progress-fill" style="width:${Math.round((o.milestones.filter(m => m.done).length / o.milestones.length) * 100)}%;"></div></div>` : ''}
       <div class="card-meta">
         <span>${o.deadline ? formatDate(o.deadline) : ''}</span>
         <span style="text-align:right;">
@@ -1628,10 +1724,12 @@ function renderBoard() {
   renderStreak();
   renderToday();
   renderTodayHero();
+  updateNoOverdueStreak();
   renderOverloadBanner();
   updateFaviconAndTitle();
   renderGreeting();
   renderRecords();
+  renderTrends();
   renderHeatmap();
   renderTimeline();
   renderWeekdayStats();
@@ -1677,10 +1775,12 @@ function renderList() {
   renderStreak();
   renderToday();
   renderTodayHero();
+  updateNoOverdueStreak();
   renderOverloadBanner();
   updateFaviconAndTitle();
   renderGreeting();
   renderRecords();
+  renderTrends();
   renderHeatmap();
   renderTimeline();
   renderWeekdayStats();
@@ -1709,6 +1809,32 @@ function playDeliverySound() {
   } catch (e) { /* audio non supporte, pas grave */ }
 }
 
+document.getElementById('record-overlay-close').addEventListener('click', () => {
+  document.getElementById('record-overlay').classList.add('hidden');
+});
+
+function checkForRecord() {
+  const now = new Date();
+  const thisMonthKey = `${now.getFullYear()}-${now.getMonth()}`;
+  const byMonth = {};
+  orders.forEach(o => {
+    if (o.status === 'livre' && o.paidAt) {
+      const d = new Date(o.paidAt);
+      const key = `${d.getFullYear()}-${d.getMonth()}`;
+      byMonth[key] = (byMonth[key] || 0) + amountInRBX(o);
+    }
+  });
+  const thisMonthTotal = byMonth[thisMonthKey] || 0;
+  const otherMonths = Object.entries(byMonth).filter(([k]) => k !== thisMonthKey).map(([, v]) => v);
+  const previousBest = otherMonths.length > 0 ? Math.max(...otherMonths) : 0;
+
+  if (thisMonthTotal > previousBest && previousBest > 0) {
+    document.getElementById('record-overlay-text').textContent = `Ton mois en cours atteint ${Math.round(thisMonthTotal).toLocaleString('fr-FR')} RBX, ton ancien record etait ${Math.round(previousBest).toLocaleString('fr-FR')} RBX.`;
+    document.getElementById('record-overlay').classList.remove('hidden');
+    fireConfetti();
+  }
+}
+
 function setOrderStatus(order, newKey) {
   order.status = newKey;
   if (newKey === 'livre' && !order.paidAt) {
@@ -1716,6 +1842,10 @@ function setOrderStatus(order, newKey) {
     fireConfetti();
     playDeliverySound();
     notifyDiscord(`Commande livree : ${order.client} (${order.type}) - ${order.price || '?'} ${currencyLabelOf(order)}`);
+    save();
+    render();
+    checkForRecord();
+    return;
   }
   save();
   render();
@@ -1862,6 +1992,29 @@ function renderCharts() {
 }
 
 // ---------- Confettis ----------
+const EASTER_EGG_MESSAGES = [
+  '\u{1F41B} Tu as trouve le bug... euh, la feature secrete !',
+  '\u{1F3AE} JB Studio te salue, developpeur de l\'ombre.',
+  '\u26A1 Achievement debloque : Curieux professionnel.',
+  '\u{1F3B2} Rien a voir ici... enfin si, un peu de fun.',
+  '\u{1F977} Continue comme ca, prochaine commande t\'attend.'
+];
+let logoClickCount = 0;
+let logoClickTimer = null;
+document.getElementById('app-logo').addEventListener('click', () => {
+  logoClickCount++;
+  clearTimeout(logoClickTimer);
+  logoClickTimer = setTimeout(() => { logoClickCount = 0; }, 2500);
+  if (logoClickCount >= 7) {
+    logoClickCount = 0;
+    fireConfetti();
+    const toast = document.getElementById('easter-egg-toast');
+    toast.textContent = EASTER_EGG_MESSAGES[Math.floor(Math.random() * EASTER_EGG_MESSAGES.length)];
+    toast.classList.remove('hidden');
+    setTimeout(() => toast.classList.add('hidden'), 3000);
+  }
+});
+
 function fireConfetti() {
   const canvas = document.getElementById('confetti-canvas');
   canvas.width = window.innerWidth;
@@ -1961,6 +2114,40 @@ function renderToday() {
     chip.addEventListener('click', () => openEditModal(o.id));
     list.appendChild(chip);
   });
+}
+
+const STREAK_KEY = 'commissions_noover_streak';
+
+function updateNoOverdueStreak() {
+  const todayStr = new Date().toISOString().slice(0, 10);
+  let data;
+  try { data = JSON.parse(localStorage.getItem(STREAK_KEY)) || { count: 0, lastDate: null }; } catch (e) { data = { count: 0, lastDate: null }; }
+
+  const hasOverdueToday = orders.some(o => !o.archived && o.status !== 'livre' && o.deadline && daysUntil(o.deadline) < 0);
+
+  if (data.lastDate !== todayStr) {
+    if (hasOverdueToday) {
+      data.count = 0;
+    } else {
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      const yStr = yesterday.toISOString().slice(0, 10);
+      data.count = (data.lastDate === yStr) ? (data.count || 0) + 1 : 1;
+    }
+    data.lastDate = todayStr;
+    localStorage.setItem(STREAK_KEY, JSON.stringify(data));
+  } else if (hasOverdueToday && data.count !== 0) {
+    data.count = 0;
+    localStorage.setItem(STREAK_KEY, JSON.stringify(data));
+  }
+
+  const badge = document.getElementById('noover-streak-badge');
+  if (data.count > 0) {
+    badge.textContent = `\u{1F525} ${data.count} jour${data.count > 1 ? 's' : ''} sans retard`;
+    badge.classList.remove('hidden');
+  } else {
+    badge.classList.add('hidden');
+  }
 }
 
 function renderTodayHero() {
@@ -2241,7 +2428,52 @@ function renderRecords() {
   `).join('');
 }
 
-// ---------- Heatmap d'activite ----------
+// ---------- Tendances (comparateur d'annees + projection) ----------
+function renderTrends() {
+  const container = document.getElementById('trends-list');
+  const now = new Date();
+  const items = [];
+
+  const paidThisMonth = orders.filter(o => o.status === 'livre' && o.paidAt && new Date(o.paidAt).getFullYear() === now.getFullYear() && new Date(o.paidAt).getMonth() === now.getMonth());
+  const totalThisMonth = paidThisMonth.reduce((s, o) => s + amountInRBX(o), 0);
+
+  const paidSameMonthLastYear = orders.filter(o => o.status === 'livre' && o.paidAt && new Date(o.paidAt).getFullYear() === now.getFullYear() - 1 && new Date(o.paidAt).getMonth() === now.getMonth());
+  const totalLastYear = paidSameMonthLastYear.reduce((s, o) => s + amountInRBX(o), 0);
+
+  if (totalLastYear > 0) {
+    const change = ((totalThisMonth - totalLastYear) / totalLastYear) * 100;
+    items.push({ label: 'Vs meme mois l\'an dernier', value: `${change >= 0 ? '+' : ''}${change.toFixed(0)}%`, sub: `${totalLastYear.toLocaleString('fr-FR')} RBX l'an dernier` });
+  } else {
+    items.push({ label: 'Vs meme mois l\'an dernier', value: '-', sub: 'Pas de donnees a comparer' });
+  }
+
+  const dayOfMonth = now.getDate();
+  const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+  if (totalThisMonth > 0 && dayOfMonth > 0) {
+    const projected = (totalThisMonth / dayOfMonth) * daysInMonth;
+    items.push({ label: 'Projection fin de mois', value: `~${Math.round(projected).toLocaleString('fr-FR')} RBX`, sub: `selon ton rythme actuel (jour ${dayOfMonth}/${daysInMonth})` });
+  } else {
+    items.push({ label: 'Projection fin de mois', value: '-', sub: 'Aucun encaissement ce mois pour l\'instant' });
+  }
+
+  const withTime = orders.filter(o => o.status === 'livre' && o.timeSpent && o.timeSpent > 0);
+  if (withTime.length > 0) {
+    const totalRBX = withTime.reduce((s, o) => s + amountInRBX(o), 0);
+    const totalMinutes = withTime.reduce((s, o) => s + o.timeSpent, 0);
+    const hourlyRate = totalRBX / (totalMinutes / 60);
+    items.push({ label: 'Taux horaire moyen', value: `${Math.round(hourlyRate).toLocaleString('fr-FR')} RBX/h`, sub: `sur ${withTime.length} commande${withTime.length > 1 ? 's' : ''} avec temps renseigne` });
+  }
+
+  container.innerHTML = items.map(it => `
+    <div class="record-item">
+      <span class="record-item-label">${escapeHtml(it.label)}</span>
+      <span class="record-item-value">${escapeHtml(it.value)}</span>
+      <span class="record-item-sub">${escapeHtml(it.sub)}</span>
+    </div>
+  `).join('');
+}
+
+
 function renderHeatmap() {
   const container = document.getElementById('heatmap-grid');
   container.innerHTML = '';
@@ -2435,7 +2667,49 @@ document.getElementById('export-btn').addEventListener('click', () => {
   URL.revokeObjectURL(url);
 });
 
-// ---------- Import CSV ----------
+// ---------- Export .ics ----------
+function icsEscape(str) {
+  return String(str).replace(/[\\;,]/g, m => '\\' + m).replace(/\n/g, '\\n');
+}
+
+document.getElementById('export-ics-btn').addEventListener('click', () => {
+  const withDeadline = orders.filter(o => !o.archived && o.status !== 'livre' && o.deadline);
+  const now = new Date();
+  const stamp = now.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+
+  const events = withDeadline.map(o => {
+    const dateStr = o.deadline.replace(/-/g, '');
+    return [
+      'BEGIN:VEVENT',
+      `UID:${o.id}@commissions-jbstudio`,
+      `DTSTAMP:${stamp}`,
+      `DTSTART;VALUE=DATE:${dateStr}`,
+      `DTEND;VALUE=DATE:${dateStr}`,
+      `SUMMARY:${icsEscape(`${o.client} - ${o.type}`)}`,
+      `DESCRIPTION:${icsEscape(o.description || '')}`,
+      'END:VEVENT'
+    ].join('\r\n');
+  });
+
+  const ics = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//JB Studio//Commissions//FR',
+    'CALSCALE:GREGORIAN',
+    ...events,
+    'END:VCALENDAR'
+  ].join('\r\n');
+
+  const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'commissions-deadlines.ics';
+  a.click();
+  URL.revokeObjectURL(url);
+});
+
+
 function parseCsvLine(line) {
   const cells = [];
   let cur = '';
@@ -2524,6 +2798,7 @@ document.getElementById('data-btn').addEventListener('click', () => {
   renderRate();
   renderWebhook();
   renderApiKey();
+  renderPinDisplay();
   renderAccentSwatches();
   renderNotifStatus();
   dataOverlay.classList.remove('hidden');
@@ -2900,6 +3175,58 @@ document.getElementById('f-type').addEventListener('change', () => {
   deadlineInput.value = d.toISOString().slice(0, 10);
 });
 
+let currentMilestones = [];
+
+function renderMilestonesList() {
+  const container = document.getElementById('milestones-list');
+  if (currentMilestones.length === 0) {
+    container.innerHTML = '<p style="font-size:12px; color:var(--text-muted); margin:0;">Aucune etape ajoutee</p>';
+    return;
+  }
+  const done = currentMilestones.filter(m => m.done).length;
+  const pct = Math.round((done / currentMilestones.length) * 100);
+  container.innerHTML = `
+    <div class="milestone-progress-track"><div class="milestone-progress-fill" style="width:${pct}%;"></div></div>
+    <p style="font-size:11px; color:var(--text-muted); margin:0 0 6px;">${done}/${currentMilestones.length} etapes (${pct}%)</p>
+  ` + currentMilestones.map((m, i) => `
+    <div class="milestone-row" data-milestone-idx="${i}">
+      <input type="checkbox" data-milestone-check="${i}" ${m.done ? 'checked' : ''} />
+      <span class="${m.done ? 'done' : ''}">${escapeHtml(m.label)}</span>
+      <button type="button" class="milestone-del" data-milestone-del="${i}">&times;</button>
+    </div>
+  `).join('');
+
+  container.querySelectorAll('[data-milestone-check]').forEach(cb => {
+    cb.addEventListener('change', () => {
+      const idx = parseInt(cb.dataset.milestoneCheck, 10);
+      currentMilestones[idx].done = cb.checked;
+      renderMilestonesList();
+    });
+  });
+  container.querySelectorAll('[data-milestone-del]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = parseInt(btn.dataset.milestoneDel, 10);
+      currentMilestones.splice(idx, 1);
+      renderMilestonesList();
+    });
+  });
+}
+
+document.getElementById('milestone-add-btn').addEventListener('click', () => {
+  const input = document.getElementById('milestone-new-input');
+  const label = input.value.trim();
+  if (!label) return;
+  currentMilestones.push({ label, done: false });
+  input.value = '';
+  renderMilestonesList();
+});
+document.getElementById('milestone-new-input').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    document.getElementById('milestone-add-btn').click();
+  }
+});
+
 function openNewModal(prefill) {
   editingId = null;
   modalTitle.textContent = 'Nouvelle commande';
@@ -2924,6 +3251,9 @@ function openNewModal(prefill) {
   document.getElementById('f-priority').value = 'normal';
   document.getElementById('f-contact').value = '';
   document.getElementById('f-tags').value = '';
+  document.getElementById('f-time-spent').value = '';
+  currentMilestones = [];
+  renderMilestonesList();
   document.getElementById('history-section').classList.add('hidden');
   updatePriceHint();
   modalOverlay.classList.remove('hidden');
@@ -2960,6 +3290,9 @@ function openEditModal(id) {
   document.getElementById('f-priority').value = o.priority || 'normal';
   document.getElementById('f-contact').value = o.contact || '';
   document.getElementById('f-tags').value = (o.tags || []).join(', ');
+  document.getElementById('f-time-spent').value = o.timeSpent || '';
+  currentMilestones = (o.milestones || []).map(m => Object.assign({}, m));
+  renderMilestonesList();
   const historySection = document.getElementById('history-section');
   const historyList = document.getElementById('history-list');
   const historyToggleBtn = document.getElementById('history-toggle-btn');
@@ -3281,6 +3614,19 @@ document.getElementById('focus-reset').addEventListener('click', () => {
   document.getElementById('focus-timer').textContent = formatTimer(0);
 });
 
+document.getElementById('focus-save-time').addEventListener('click', () => {
+  if (!editingId || focusElapsedSeconds === 0) return;
+  const o = orders.find(x => x.id === editingId);
+  if (!o) return;
+  const minutes = Math.round(focusElapsedSeconds / 60);
+  o.timeSpent = (o.timeSpent || 0) + minutes;
+  save();
+  const btn = document.getElementById('focus-save-time');
+  const original = btn.textContent;
+  btn.textContent = `+${minutes} min ajoutees !`;
+  setTimeout(() => { btn.textContent = original; }, 1800);
+});
+
 deleteBtn.addEventListener('click', () => {
   if (!editingId) return;
   orders = orders.filter(o => o.id !== editingId);
@@ -3301,6 +3647,9 @@ saveBtn.addEventListener('click', () => {
   const contact = document.getElementById('f-contact').value.trim();
   const tagsRaw = document.getElementById('f-tags').value.trim();
   const tags = tagsRaw ? tagsRaw.split(',').map(t => t.trim()).filter(Boolean) : [];
+  const timeSpentRaw = document.getElementById('f-time-spent').value.trim();
+  const timeSpent = timeSpentRaw ? parseInt(timeSpentRaw, 10) : 0;
+  const milestones = currentMilestones.slice();
   if (!client || !description) return;
 
   if (editingId) {
@@ -3323,7 +3672,7 @@ saveBtn.addEventListener('click', () => {
     const newTags = tags.join(', ');
     if (oldTags !== newTags) changes.push(`Tags : "${oldTags || '-'}" -> "${newTags || '-'}"`);
 
-    Object.assign(o, { client, type, description, price, currency, deposit, deadline, priority, contact, tags });
+    Object.assign(o, { client, type, description, price, currency, deposit, deadline, priority, contact, tags, timeSpent, milestones });
     if (changes.length > 0) {
       o.history = o.history || [];
       o.history.unshift({ date: new Date().toISOString(), changes });
@@ -3331,7 +3680,7 @@ saveBtn.addEventListener('click', () => {
   } else {
     orders.push({
       id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
-      client, type, description, price, currency, deposit, deadline, priority, contact, tags,
+      client, type, description, price, currency, deposit, deadline, priority, contact, tags, timeSpent, milestones,
       status: STATUSES[0].key,
       createdAt: new Date().toISOString(),
       history: []
@@ -3591,6 +3940,59 @@ if ('serviceWorker' in navigator) {
   });
 }
 
+// ---------- Verrouillage par code PIN ----------
+const PIN_KEY = 'commissions_pin';
+const PIN_SEEDED_KEY = 'commissions_pin_seeded';
+
+if (!localStorage.getItem(PIN_SEEDED_KEY)) {
+  localStorage.setItem(PIN_KEY, '2807');
+  localStorage.setItem(PIN_SEEDED_KEY, '1');
+}
+
+function renderPinDisplay() {
+  const pin = localStorage.getItem(PIN_KEY);
+  document.getElementById('pin-display').textContent = pin ? 'Code PIN active' : 'Aucun code configure';
+}
+
+document.getElementById('pin-edit-btn').addEventListener('click', () => {
+  const current = localStorage.getItem(PIN_KEY) || '';
+  const input = window.prompt('Choisis un code (4 a 8 chiffres, laisse vide pour desactiver) :', current);
+  if (input === null) return;
+  if (input.trim()) {
+    localStorage.setItem(PIN_KEY, input.trim());
+  } else {
+    localStorage.removeItem(PIN_KEY);
+  }
+  renderPinDisplay();
+});
+
+function checkPinLock() {
+  const pin = localStorage.getItem(PIN_KEY);
+  if (!pin) return;
+  const overlay = document.getElementById('pin-lock-overlay');
+  overlay.classList.remove('hidden');
+  document.getElementById('pin-lock-input').focus();
+}
+
+function attemptUnlock() {
+  const input = document.getElementById('pin-lock-input');
+  const error = document.getElementById('pin-lock-error');
+  const pin = localStorage.getItem(PIN_KEY);
+  if (input.value === pin) {
+    document.getElementById('pin-lock-overlay').classList.add('hidden');
+    error.classList.add('hidden');
+    input.value = '';
+  } else {
+    error.classList.remove('hidden');
+    input.value = '';
+    input.focus();
+  }
+}
+document.getElementById('pin-lock-submit').addEventListener('click', attemptUnlock);
+document.getElementById('pin-lock-input').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') attemptUnlock();
+});
+
 // ---------- Init ----------
 applyTheme();
 applyAccent();
@@ -3602,6 +4004,9 @@ if (!checkShareView()) {
 }
 checkDeadlineNotifications();
 setInterval(checkDeadlineNotifications, 30 * 60 * 1000);
+if (!checkShareView()) {
+  checkPinLock();
+}
 </script>
 </body>
 </html>
